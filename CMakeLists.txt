@@ -179,6 +179,10 @@ if(APPLE)
     set(CMAKE_FIND_FRAMEWORK LAST)
 endif()
 
+if(EMSCRIPTEN)
+    set(M_LIBRARY "" CACHE STRING "libm (not necessary)" FORCE)
+endif()
+
 message(STATUS "Using in-tree libdxfrw")
 add_subdirectory(extlib/libdxfrw)
 
@@ -190,7 +194,7 @@ set(MI_BUILD_TESTS OFF CACHE BOOL "")
 add_subdirectory(extlib/mimalloc EXCLUDE_FROM_ALL)
 set(MIMALLOC_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/extlib/mimalloc/include)
 
-if(WIN32 OR APPLE)
+if(WIN32 OR APPLE OR EMSCRIPTEN)
     # On Win32 and macOS we use vendored packages, since there is little to no benefit
     # to trying to find system versions. In particular, trying to link to libraries from
     # Homebrew or macOS system libraries into the .app file is highly likely to result
@@ -276,6 +280,8 @@ if(ENABLE_GUI)
     elseif(APPLE)
         find_package(OpenGL REQUIRED)
         find_library(APPKIT_LIBRARY AppKit REQUIRED)
+    elseif(EMSCRIPTEN)
+        # Everything is built in
     else()
         find_package(OpenGL REQUIRED)
         find_package(SpaceWare)
