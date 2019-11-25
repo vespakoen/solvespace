@@ -121,6 +121,7 @@ enum class Command : uint32_t {
     SPLIT_CURVES,
     TANGENT_ARC,
     CONSTRUCTION,
+    OFFSET,
     // Group
     GROUP_3D,
     GROUP_WRKPL,
@@ -682,6 +683,7 @@ public:
     };
     void MakeTangentArc();
     void SplitLinesOrCurves();
+    void OffsetLines();
     hEntity SplitEntity(hEntity he, Vector pinter);
     hEntity SplitLine(hEntity he, Vector pinter);
     hEntity SplitCircle(hEntity he, Vector pinter);

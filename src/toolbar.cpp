@@ -36,6 +36,8 @@ static ToolIcon Toolbar[] = {
       N_("Toggle construction"),                              {} },
     { "trim",            Command::SPLIT_CURVES,
       N_("Split lines / curves where they intersect"),        {} },
+    { "offset",          Command::OFFSET,
+      N_("Offset segments"),        {} },
     { "",                Command::NONE, "",                   {} },
 
     { "length",          Command::DISTANCE_DIA,

@@ -743,3 +743,52 @@ void GraphicsWindow::SplitLinesOrCurves() {
     sblb.Clear();
     ClearSelection();
 }
+
+void GraphicsWindow::OffsetLines() {
+    fprintf(stdout, "OFSETTING");
+    
+    if(!LockedInWorkplane()) {
+        Error(_("Must be sketching in workplane to offset."));
+        fprintf(stdout, "LOCKED");
+        return;
+    }
+
+    GroupSelection();
+    if(gs.entities == 0) {
+        Error(_("No entities are selected. Select entities before "
+                "trying to toggle their construction state."));
+        fprintf(stdout, "GROUP SELECTION");
+        return;
+    }
+
+    SS.UndoRemember();
+    // // int i;
+    // // for(i = 0; i < gs.entities; i++) {
+    // //     hEntity he = gs.entity[i];
+    // //     if(!he.isFromRequest()) continue;
+    // //     Request *r = SK.GetRequest(he.request());
+    // //     r->
+    // //     // SS.MarkGroupDirty(r->group);
+    // // }
+    // // ClearSelection();
+    // // return;
+
+    List<Selection> *ls = &(SS.GW.selection);
+    for(Selection *s = ls->First(); s; s = ls->NextAfter(s)) {
+        fprintf(stdout, "ENTITY");
+        if(!s->entity.v) continue;
+        Entity *se = SK.GetEntity(s->entity);
+        if(!se->HasEndpoints()) continue;
+        Vector sst = se->EndpointStart(),
+                sfi = se->EndpointFinish();
+        fprintf(stdout, "from: %f, %f ", sst.x, sst.y);
+        fprintf(stdout, "to: %f, %f\n", sfi.x, sfi.y);
+    }
+
+    // SS.GW.Invalidate();
+    // SS.ScheduleShowTW();
+    // if(newlySelected == 0) {
+    //     Error(_("No additional entities share endpoints with the selected entities."));
+    // }
+    // return;
+}

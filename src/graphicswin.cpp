@@ -1285,6 +1285,10 @@ c:
             SS.GW.SplitLinesOrCurves();
             break;
 
+        case Command::OFFSET:
+            SS.GW.OffsetLines();
+            break;
+
         default: ssassert(false, "Unexpected menu ID");
     }
 }
