@@ -27,8 +27,6 @@ security find-identity -v
 codesign -s "${MACOS_DEVELOPER_ID}" --timestamp --options runtime -f --deep "${dmg}"
 
 # notarize and store request uuid in variable
-xcrun altool --notarize-app --primary-bundle-id "${bundle_id}" --username "${MACOS_APPSTORE_USERNAME}" --password "${MACOS_APPSTORE_APP_PASSWORD}" --file "${dmg}"
-
 notarize_uuid=$(xcrun altool --notarize-app --primary-bundle-id "${bundle_id}" --username "${MACOS_APPSTORE_USERNAME}" --password "${MACOS_APPSTORE_APP_PASSWORD}" --file "${dmg}" 2>&1 | grep RequestUUID | awk '{print $3'})
 echo $notarize_uuid
 
@@ -39,7 +37,7 @@ success=0
 for (( ; ; ))
 do
     echo "Checking progress..."
-    progress=$(xcrun altool --notarization-info "${notarize_uuid}" -u "${MACOS_APPSTORE_USERNAME}" -p "${MACOS_APPSTORE_APP_PASSWORD}" 2>&1)
+    progress=$(xcrun altool --notarization-info "${notarize_uuid}" -u "${MACOS_APPSTORE_USERNAME}" -p "${MACOS_APPSTORE_APP_PASSWORD}")
     echo "${progress}"
  
     if [ $? -ne 0 ] || [[  "${progress}" =~ "Invalid" ]] ; then
