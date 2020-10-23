@@ -1,0 +1,34 @@
+name: Ubuntu
+
+on:
+  push:
+    branches-ignore:
+      - "**"
+# on:
+#   - push
+# push:
+#   branches:
+#     - master
+
+jobs:
+  test:
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Install
+        run: .travis/install-debian.sh
+      - name: Build Debug & Test
+        run: .travis/build-debian.sh
+  deploy:
+    if: github.ref == 'refs/heads/master'
+    needs: test
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    steps:
+      - name: Build Release & Test
+        if: github.ref == 'refs/heads/master'
+        run: rm -rf build && .travis/build-debian.sh release

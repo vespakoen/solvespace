@@ -9,14 +9,12 @@ cd build
 if [ "$1" == "release" ]; then
     BUILD_TYPE=RelWithDebInfo
     cmake \
-        -G "Visual Studio 15 2017 Win64" \
         -DCMAKE_BUILD_TYPE="${BUILD_TYPE}" .. \
         -DENABLE_OPENMP=ON \
         -DENABLE_LTO=ON
 else
     BUILD_TYPE=Debug
     cmake \
-        -G "Visual Studio 15 2017 Win64" \
         -DCMAKE_BUILD_TYPE="${BUILD_TYPE}" ..
 fi
 

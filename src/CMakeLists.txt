@@ -73,15 +73,18 @@ if(NOT WIN32)
 endif()
 
 # solvespace dependencies
+find_package(mimalloc CONFIG REQUIRED)
+find_package(unofficial-pixman CONFIG REQUIRED)
+find_package(unofficial-cairo CONFIG REQUIRED)
 
 include_directories(
     ${OPENGL_INCLUDE_DIR}
-    ${ZLIB_INCLUDE_DIR}
-    ${PNG_PNG_INCLUDE_DIR}
-    ${FREETYPE_INCLUDE_DIRS}
-    ${CAIRO_INCLUDE_DIRS}
+    # ${ZLIB_INCLUDE_DIR}
+    # ${PNG_PNG_INCLUDE_DIR}
+    # ${FREETYPE_INCLUDE_DIRS}
+    # ${CAIRO_INCLUDE_DIRS}
     ${Q3D_INCLUDE_DIR}
-    ${MIMALLOC_INCLUDE_DIR})
+)
 
 if(Backtrace_FOUND)
     include_directories(
@@ -215,17 +218,19 @@ add_library(solvespace-core STATIC
 
 add_dependencies(solvespace-core
     q3d_header
+    mimalloc
     mimalloc-static)
 
 target_link_libraries(solvespace-core
     ${OpenMP_CXX_LIBRARIES}
     dxfrw
     ${util_LIBRARIES}
-    ${ZLIB_LIBRARY}
-    ${PNG_LIBRARY}
-    ${FREETYPE_LIBRARY}
+    unofficial::pixman::pixman-1
+    unofficial::cairo::cairo
     flatbuffers
-    mimalloc-static)
+    mimalloc
+    mimalloc-static
+)
 
 if(Backtrace_FOUND)
     target_link_libraries(solvespace-core

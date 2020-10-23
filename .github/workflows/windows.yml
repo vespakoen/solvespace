@@ -1,0 +1,61 @@
+name: Windows
+
+on:
+  push:
+    branches-ignore:
+      - "**"
+# on:
+#   - push
+# push:
+#   branches:
+#     - master
+
+jobs:
+  test:
+    timeout-minutes: 15
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Install
+        shell: bash
+        run: .travis/install-windows.sh
+      - name: Build Debug & Test
+        shell: bash
+        run: .travis/build-windows.sh
+  deploy:
+    if: github.ref == 'refs/heads/master'
+    needs: test
+    timeout-minutes: 15
+    runs-on: windows-latest
+    steps:
+      - name: Build Release & Test
+        shell: bash
+        run: rm -rf build && .travis/build-windows.sh release
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: edge
+          release_name: edge
+          body: ${{ github.event.head_commit.message }}
+          draft: false
+          prerelease: true
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v1
+        with:
+          name: SolveSpace Windows
+          path: ./build/RelWithDebInfo/bin/solvespace.exe
+      - name: Update edge release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./build/RelWithDebInfo/bin/solvespace.exe
+          asset_name: solvespace.exe
+          asset_content_type: application/octet-stream

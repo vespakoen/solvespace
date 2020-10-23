@@ -29,3 +29,6 @@
 [submodule "extlib/mimalloc"]
 	path = extlib/mimalloc
 	url = https://github.com/microsoft/mimalloc
+[submodule "extlib/vcpkg"]
+	path = extlib/vcpkg
+	url = https://github.com/microsoft/vcpkg.git

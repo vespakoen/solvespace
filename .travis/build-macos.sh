@@ -5,6 +5,7 @@ cd build
 
 OSX_TARGET="10.9"
 LLVM_PREFIX=$(brew --prefix llvm@9)
+NCORES=$(sysctl -n hw.logicalcpu)
 export CC="${LLVM_PREFIX}/bin/clang"
 export CXX="${CC}++"
 export LDFLAGS="-L${LLVM_PREFIX}/lib -Wl,-rpath,${LLVM_PREFIX}/lib" \
@@ -25,5 +26,5 @@ else
         -DCMAKE_BUILD_TYPE="${BUILD_TYPE}" ..
 fi
 
-cmake --build . --config "${BUILD_TYPE}" -- -j$(nproc)
-make -j$(nproc) test_solvespace
+cmake --build . --config "${BUILD_TYPE}" -- -j${NCORES}
+make -j${NCORES} test_solvespace

@@ -1,0 +1,63 @@
+name: macOS
+
+on:
+  push:
+    branches-ignore:
+      - "**"
+# on:
+#   - push
+# push:
+#   branches:
+#     - master
+
+jobs:
+  test:
+    timeout-minutes: 15
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Install
+        run: .travis/install-macos.sh
+      - name: Build Debug & Test
+        run: .travis/build-macos.sh
+  deploy:
+    if: github.ref == 'refs/heads/master'
+    needs: test
+    timeout-minutes: 15
+    runs-on: macos-latest
+    steps:
+      - name: Build Release & Test
+        run: rm -rf build && .travis/build-macos.sh release
+      - name: Sign
+        run: .travis/sign-macos.sh
+        env:
+          MACOS_CERTIFICATE_P12: ${{ secrets.MACOS_CERTIFICATE_P12 }}
+          MACOS_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: edge
+          release_name: edge
+          body: ${{ github.event.head_commit.message }}
+          draft: false
+          prerelease: true
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v1
+        with:
+          name: SolveSpace macOS
+          path: ./build/bin/SolveSpace.dmg
+      - name: Update edge release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./build/bin/SolveSpace.dmg
+          asset_name: SolveSpace.dmg
+          asset_content_type: application/octet-stream

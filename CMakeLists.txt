@@ -40,6 +40,8 @@ include(GetGitCommitHash)
 # and instead uncomment the following, adding the complete git hash of the checkout you are using:
 # set(GIT_COMMIT_HASH 0000000000000000000000000000000000000000)
 
+set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/extlib/vcpkg/scripts/buildsystems/vcpkg.cmake CACHE STRING "Vcpkg toolchain file")
+
 project(solvespace)
 set(solvespace_VERSION_MAJOR 3)
 set(solvespace_VERSION_MINOR 0)
@@ -219,45 +221,46 @@ if(WIN32 OR APPLE)
     # Homebrew or macOS system libraries into the .app file is highly likely to result
     # in incompatibilities after upgrades.
 
-    include(FindVendoredPackage)
-    include(AddVendoredSubdirectory)
+    # include(FindVendoredPackage)
+    # include(AddVendoredSubdirectory)
 
-    set(FORCE_VENDORED_ZLIB     ON)
-    set(FORCE_VENDORED_PNG      ON)
-    set(FORCE_VENDORED_Freetype ON)
+    # set(FORCE_VENDORED_ZLIB     ON)
+    # set(FORCE_VENDORED_PNG      ON)
+    # set(FORCE_VENDORED_Freetype ON)
 
-    find_vendored_package(ZLIB zlib
-        ZLIB_LIBRARY            zlibstatic
-        ZLIB_INCLUDE_DIR        ${CMAKE_SOURCE_DIR}/extlib/zlib)
-    list(APPEND ZLIB_INCLUDE_DIR ${CMAKE_BINARY_DIR}/extlib/zlib)
+    # find_vendored_package(ZLIB zlib
+    #     ZLIB_LIBRARY            zlibstatic
+    #     ZLIB_INCLUDE_DIR        ${CMAKE_SOURCE_DIR}/extlib/zlib)
+    # list(APPEND ZLIB_INCLUDE_DIR ${CMAKE_BINARY_DIR}/extlib/zlib)
 
-    find_vendored_package(PNG libpng
-        SKIP_INSTALL_ALL        ON
-        PNG_LIBRARY             png_static
-        PNG_PNG_INCLUDE_DIR     ${CMAKE_SOURCE_DIR}/extlib/libpng)
-    list(APPEND PNG_PNG_INCLUDE_DIR ${CMAKE_BINARY_DIR}/extlib/libpng)
+    # find_vendored_package(PNG libpng
+    #     SKIP_INSTALL_ALL        ON
+    #     PNG_LIBRARY             png_static
+    #     PNG_PNG_INCLUDE_DIR     ${CMAKE_SOURCE_DIR}/extlib/libpng)
+    # list(APPEND PNG_PNG_INCLUDE_DIR ${CMAKE_BINARY_DIR}/extlib/libpng)
 
-    find_vendored_package(Freetype freetype
-        WITH_ZLIB               OFF
-        WITH_BZip2              OFF
-        WITH_PNG                OFF
-        WITH_HarfBuzz           OFF
-        FREETYPE_LIBRARY        freetype
-        FREETYPE_INCLUDE_DIRS   ${CMAKE_SOURCE_DIR}/extlib/freetype/include)
+    # find_vendored_package(Freetype freetype
+    #     WITH_ZLIB               OFF
+    #     WITH_BZip2              OFF
+    #     WITH_PNG                OFF
+    #     WITH_HarfBuzz           OFF
+    #     FREETYPE_LIBRARY        freetype
+    #     FREETYPE_INCLUDE_DIRS   ${CMAKE_SOURCE_DIR}/extlib/freetype/include)
 
-    message(STATUS "Using in-tree pixman")
-    add_vendored_subdirectory(extlib/pixman)
-    set(PIXMAN_FOUND            YES)
-    set(PIXMAN_LIBRARY          pixman)
-    set(PIXMAN_INCLUDE_DIRS     ${CMAKE_SOURCE_DIR}/extlib/pixman/pixman)
-    list(APPEND PIXMAN_INCLUDE_DIRS ${CMAKE_BINARY_DIR}/extlib/pixman/pixman)
+    # message(STATUS "Using in-tree pixman")
+    # add_vendored_subdirectory(extlib/pixman)
+    # set(PIXMAN_FOUND            YES)
+    # set(PIXMAN_LIBRARY          pixman)
+    # set(PIXMAN_INCLUDE_DIRS     ${CMAKE_SOURCE_DIR}/extlib/pixman/pixman)
+    # list(APPEND PIXMAN_INCLUDE_DIRS ${CMAKE_BINARY_DIR}/extlib/pixman/pixman)
 
-    message(STATUS "Using in-tree cairo")
-    add_vendored_subdirectory(extlib/cairo)
-    set(CAIRO_FOUND             YES)
-    set(CAIRO_LIBRARIES         cairo)
-    set(CAIRO_INCLUDE_DIRS      ${CMAKE_SOURCE_DIR}/extlib/cairo/src)
-    list(APPEND CAIRO_INCLUDE_DIRS ${CMAKE_BINARY_DIR}/extlib/cairo/src)
+    # message(STATUS "Using in-tree cairo")
+    # add_vendored_subdirectory(extlib/cairo)
+    # set(CAIRO_FOUND             YES)
+    # set(CAIRO_LIBRARIES         cairo)
+    # set(CAIRO_INCLUDE_DIRS      ${CMAKE_SOURCE_DIR}/extlib/cairo/src)
+    # list(APPEND CAIRO_INCLUDE_DIRS ${CMAKE_BINARY_DIR}/extlib/cairo/src)
+    
 else()
     # On Linux and BSDs we're a good citizen and link to system libraries.
     find_package(Backtrace)
