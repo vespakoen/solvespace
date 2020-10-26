@@ -416,3 +416,10 @@ if(APPLE)
         COMMENT "Bundling executable solvespace-cli"
         VERBATIM)
 endif()
+
+if(WIN32 AND ENABLE_OPENMP)
+    install(
+        FILES ${CLANG_OPENMP_DLL}
+        DESTINATION "."
+    )
+endif()
