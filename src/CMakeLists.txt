@@ -27,7 +27,6 @@ if(APPLE)
 endif()
 
 # libslvs
-
 set(libslvs_SOURCES
     util.cpp
     entity.cpp
@@ -214,7 +213,6 @@ add_library(solvespace-core STATIC
     ${solvespace_core_SOURCES})
 
 add_dependencies(solvespace-core
-    q3d_header
     mimalloc-static)
 
 target_link_libraries(solvespace-core
@@ -319,7 +317,7 @@ endif()
 
 # solvespace graphical executable
 
-if(ENABLE_GUI)
+if(ENABLE_GUI AND NOT ENABLE_EMSCRIPTENLIB)
     add_executable(solvespace WIN32 MACOSX_BUNDLE
         ${solvespace_core_gl_SOURCES}
         ${platform_SOURCES}
@@ -343,32 +341,30 @@ if(ENABLE_GUI)
     endif()
 endif()
 
-# solvespace headless library
-
-set(headless_SOURCES
-    platform/guinone.cpp
-    render/rendercairo.cpp)
-
-add_library(solvespace-headless STATIC EXCLUDE_FROM_ALL
-    ${solvespace_core_gl_SOURCES}
-    ${headless_SOURCES})
-
-target_compile_definitions(solvespace-headless
-    PRIVATE -DHEADLESS)
-
-target_include_directories(solvespace-headless
-    INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
-
-target_link_libraries(solvespace-headless
-    solvespace-core
-    ${CAIRO_LIBRARIES})
-
-target_compile_options(solvespace-headless
-    PRIVATE ${COVERAGE_FLAGS})
-
 # solvespace command-line executable
 
-if(ENABLE_CLI)
+if(ENABLE_CLI AND NOT ENABLE_EMSCRIPTENLIB)
+    set(headless_SOURCES
+        platform/guinone.cpp
+        render/rendercairo.cpp)
+
+    add_library(solvespace-headless STATIC EXCLUDE_FROM_ALL
+        ${solvespace_core_gl_SOURCES}
+        ${headless_SOURCES})
+
+    target_compile_definitions(solvespace-headless
+        PRIVATE -DHEADLESS)
+
+    target_include_directories(solvespace-headless
+        INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
+
+    target_link_libraries(solvespace-headless
+        solvespace-core
+        ${CAIRO_LIBRARIES})
+
+    target_compile_options(solvespace-headless
+        PRIVATE ${COVERAGE_FLAGS})
+
     add_executable(solvespace-cli
         platform/entrycli.cpp
         $<TARGET_PROPERTY:resources,EXTRA_SOURCES>)
@@ -388,7 +384,7 @@ endif()
 
 # solvespace unix package
 
-if(NOT (WIN32 OR APPLE))
+if(NOT (WIN32 OR APPLE OR ENABLE_EMSCRIPTENLIB))
     if(ENABLE_GUI)
         install(TARGETS solvespace
             RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})

@@ -201,7 +201,11 @@ set(MI_BUILD_TESTS OFF CACHE BOOL "")
 add_subdirectory(extlib/mimalloc EXCLUDE_FROM_ALL)
 set(MIMALLOC_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/extlib/mimalloc/include)
 
-if(WIN32 OR APPLE)
+if(ENABLE_EMSCRIPTENLIB)
+    set(M_LIBRARY "" CACHE STRING "libm (not necessary)" FORCE)
+endif()
+
+if(WIN32 OR APPLE OR ENABLE_EMSCRIPTENLIB)
     # On Win32 and macOS we use vendored packages, since there is little to no benefit
     # to trying to find system versions. In particular, trying to link to libraries from
     # Homebrew or macOS system libraries into the .app file is highly likely to result
@@ -396,14 +400,19 @@ endif()
 
 # application components
 
-add_subdirectory(res)
-add_subdirectory(src)
-add_subdirectory(exposed)
-if(ENABLE_TESTS)
-    add_subdirectory(test)
-endif()
-if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
-    add_subdirectory(bench)
+if(ENABLE_EMSCRIPTENLIB)
+    add_subdirectory(src)
+    add_subdirectory(lib/emscripten)
 else()
-    message(STATUS "Benchmarking disabled in debug builds.")
+    add_subdirectory(res)
+    add_subdirectory(src)
+    add_subdirectory(exposed)
+    if(ENABLE_TESTS)
+        add_subdirectory(test)
+    endif()
+    if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+        add_subdirectory(bench)
+    else()
+        message(STATUS "Benchmarking disabled in debug builds.")
+    endif()
 endif()
