@@ -76,6 +76,9 @@ void SolveSpaceUI::Init() {
     drawBackFaces = settings->ThawBool("DrawBackFaces", true);
     // Use turntable mouse navigation
     turntableNav = settings->ThawBool("TurntableNav", false);
+    turntableNavZ = settings->ThawBool("TurntableNavZ", true);
+    turntableNavY = settings->ThawBool("TurntableNavY", false);
+    turntableNavX = settings->ThawBool("TurntableNavX", false);
     // Immediately edit dimension
     immediatelyEditDimension = settings->ThawBool("ImmediatelyEditDimension", true);
     // Check that contours are closed and not self-intersecting
@@ -262,6 +265,9 @@ void SolveSpaceUI::Exit() {
     settings->FreezeBool("CheckClosedContour", checkClosedContour);
     // Use turntable mouse navigation
     settings->FreezeBool("TurntableNav", turntableNav);
+    settings->FreezeBool("TurntableNavZ", turntableNavZ);
+    settings->FreezeBool("TurntableNavX", turntableNavX);
+    settings->FreezeBool("TurntableNavY", turntableNavY);
     // Immediately edit dimensions
     settings->FreezeBool("ImmediatelyEditDimension", immediatelyEditDimension);
     // Enable automatic constrains for lines

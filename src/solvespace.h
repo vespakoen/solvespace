@@ -574,6 +574,9 @@ public:
     bool     showContourAreas;
     bool     checkClosedContour;
     bool     turntableNav;
+    bool     turntableNavZ;
+    bool     turntableNavY;
+    bool     turntableNavX;
     bool     immediatelyEditDimension;
     bool     automaticLineConstraints;
     bool     showToolbar;

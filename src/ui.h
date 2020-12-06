@@ -440,6 +440,9 @@ public:
     static void ScreenChangeShowContourAreas(int link, uint32_t v);
     static void ScreenChangeCheckClosedContour(int link, uint32_t v);
     static void ScreenChangeTurntableNav(int link, uint32_t v);
+    static void ScreenChangeTurntableNavZ(int link, uint32_t v);
+    static void ScreenChangeTurntableNavY(int link, uint32_t v);
+    static void ScreenChangeTurntableNavX(int link, uint32_t v);
     static void ScreenChangeImmediatelyEditDimension(int link, uint32_t v);
     static void ScreenChangeAutomaticLineConstraints(int link, uint32_t v);
     static void ScreenChangePwlCurves(int link, uint32_t v);

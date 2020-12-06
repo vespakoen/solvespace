@@ -112,6 +112,36 @@ void TextWindow::ScreenChangeTurntableNav(int link, uint32_t v) {
     }
 }
 
+void TextWindow::ScreenChangeTurntableNavZ(int link, uint32_t v) {
+    SS.turntableNavZ = true;
+    SS.turntableNavX = false;
+    SS.turntableNavY = false;
+    if(SS.turntableNav) {
+        SS.GW.AnimateOnto(Quaternion::From(Vector::From(-1, 0, 0), Vector::From(0, 0, 1)),
+                          SS.GW.offset);
+    }
+}
+
+void TextWindow::ScreenChangeTurntableNavY(int link, uint32_t v) {
+    SS.turntableNavZ = false;
+    SS.turntableNavX = false;
+    SS.turntableNavY = true;
+    if(SS.turntableNav) {
+        SS.GW.AnimateOnto(Quaternion::From(Vector::From(-1, 0, 0), Vector::From(0, 1, 0)),
+                          SS.GW.offset);
+    }
+}
+
+void TextWindow::ScreenChangeTurntableNavX(int link, uint32_t v) {
+    SS.turntableNavZ = false;
+    SS.turntableNavX = true;
+    SS.turntableNavY = false;
+    if(SS.turntableNav) {
+        SS.GW.AnimateOnto(Quaternion::From(Vector::From(0, 0, 0), Vector::From(1, 0, 0)),
+                          SS.GW.offset);
+    }
+}
+
 void TextWindow::ScreenChangeImmediatelyEditDimension(int link, uint32_t v) {
     SS.immediatelyEditDimension = !SS.immediatelyEditDimension;
     SS.GW.Invalidate(/*clearPersistent=*/true);
@@ -369,6 +399,12 @@ void TextWindow::ShowConfiguration() {
         SS.automaticLineConstraints ? CHECK_TRUE : CHECK_FALSE);
     Printf(false, "  %Fd%f%Ll%s  use turntable mouse navigation%E", &ScreenChangeTurntableNav,
         SS.turntableNav ? CHECK_TRUE : CHECK_FALSE);
+    Printf(false, "  - %Fd%f%Ll%s  around Z%E", &ScreenChangeTurntableNavZ,
+        SS.turntableNavZ ? RADIO_TRUE : RADIO_FALSE);
+    Printf(false, "  - %Fd%f%Ll%s  around Y%E", &ScreenChangeTurntableNavY,
+        SS.turntableNavY ? RADIO_TRUE : RADIO_FALSE);
+    Printf(false, "  - %Fd%f%Ll%s  around X%E", &ScreenChangeTurntableNavX,
+        SS.turntableNavX ? RADIO_TRUE : RADIO_FALSE);
     Printf(false, "  %Fd%f%Ll%s  edit newly added dimensions%E",
         &ScreenChangeImmediatelyEditDimension,
         SS.immediatelyEditDimension ? CHECK_TRUE : CHECK_FALSE);
