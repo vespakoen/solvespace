@@ -7,18 +7,17 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR)
             "    mkdir build && cd build && cmake ..")
 endif()
 
-cmake_minimum_required(VERSION 3.7...3.19)
-
-# set macOS deployment target
-set(CMAKE_MACOSX_DEPLOYMENT_TARGET "10.9")
-set(VCPKG_OSX_DEPLOYMENT_TARGET "10.9")
-
-# vcpkv toolchain
-set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake CACHE STRING "Vcpkg toolchain file")
-# cmake module path
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
-
-# c++11
+cmake_minimum_required(VERSION 3.7.2 FATAL_ERROR)
+if(NOT CMAKE_VERSION VERSION_LESS 3.11.0)
+    cmake_policy(VERSION 3.11.0)
+endif()
+if(NOT CMAKE_VERSION VERSION_LESS 3.9)
+    # LTO/IPO with non-Intel compilers on Linux requires policy CMP0069 to be set to NEW.
+    # Set it explicitly until cmake_minimum_required is raised to >= 3.9.
+    cmake_policy(SET CMP0069 NEW)
+endif()
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
+    "${CMAKE_SOURCE_DIR}/cmake/")
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED YES)
 
@@ -27,6 +26,13 @@ set(CMAKE_USER_MAKE_RULES_OVERRIDE
    "${CMAKE_SOURCE_DIR}/cmake/c_flag_overrides.cmake")
 set(CMAKE_USER_MAKE_RULES_OVERRIDE_CXX
    "${CMAKE_SOURCE_DIR}/cmake/cxx_flag_overrides.cmake")
+
+if(APPLE OR CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+endif()
+
+set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake
+  CACHE STRING "Vcpkg toolchain file")
 
 # project
 
@@ -37,9 +43,9 @@ include(GetGitCommitHash)
 # and instead uncomment the following, adding the complete git hash of the checkout you are using:
 # set(GIT_COMMIT_HASH 0000000000000000000000000000000000000000)
 
+project(solvespace)
 set(solvespace_VERSION_MAJOR 3)
 set(solvespace_VERSION_MINOR 0)
-project(SolveSpace VERSION "${solvespace_VERSION_MAJOR}.${solvespace_VERSION_MINOR}" LANGUAGES CXX)
 string(SUBSTRING "${GIT_COMMIT_HASH}" 0 8 solvespace_GIT_HASH)
 
 set(ENABLE_GUI        ON CACHE BOOL
@@ -48,8 +54,6 @@ set(ENABLE_CLI        ON CACHE BOOL
     "Whether the command line interface is enabled")
 set(ENABLE_TESTS      ON  CACHE BOOL
     "Whether the test suite will be built and run")
-set(ENABLE_BENCH      OFF  CACHE BOOL
-    "Whether the benchmarks built")
 set(ENABLE_COVERAGE   OFF CACHE BOOL
     "Whether code coverage information will be collected")
 set(ENABLE_SANITIZERS OFF CACHE BOOL
@@ -61,24 +65,15 @@ set(ENABLE_LTO     OFF CACHE BOOL
 
 set(OPENGL 3 CACHE STRING "OpenGL version to use (one of: 1 3)")
 
-# include the build folder and src folder, probably want to define them explicitely in the targets
-# this is needed for finding the solvespace.h and config.h files.
-include_directories(
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/
-    ${CMAKE_CURRENT_BINARY_DIR})
-
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/config.h.in
-    ${PROJECT_BINARY_DIR}/config.h)
-
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH    ${CMAKE_BINARY_DIR}/bin)
 if("${CMAKE_GENERATOR}" STREQUAL "Xcode")
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${CMAKE_BINARY_DIR}/bin>)
 endif()
 
-# if(NOT CMAKE_C_COMPILER_ID STREQUAL CMAKE_CXX_COMPILER_ID)
-#     message(FATAL_ERROR "C and C++ compilers should be supplied by the same vendor")
-# endif()
+if(NOT CMAKE_C_COMPILER_ID STREQUAL CMAKE_CXX_COMPILER_ID)
+    message(FATAL_ERROR "C and C++ compilers should be supplied by the same vendor")
+endif()
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 5.0)
@@ -122,20 +117,13 @@ if(ENABLE_LTO)
     set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
 endif()
 
-# we have to look for openmp and set the include directory to prevent compilation errors.
-if (APPLE)
-    set(OpenMP_CXX_LIB_NAMES "/usr/local/opt/libomp/lib/libomp.dylib")
-    set(OpenMP_FOUND TRUE)
-    set(OpenMP_CXX_FLAGS "-Xclang -fopenmp")
-    include_directories("/usr/local/opt/libomp/include")
-else()
-    find_package(OpenMP REQUIRED)
-endif()
-
-# only when OpenMP is enabled, we also add the compile flags
-if(OpenMP_FOUND AND ENABLE_OPENMP)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-    message(STATUS "found OpenMP, compiling with flags: " ${OpenMP_CXX_FLAGS})
+if(ENABLE_OPENMP)
+    find_package( OpenMP REQUIRED )
+    include(FindOpenMP)
+    if(OPENMP_FOUND)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+        message(STATUS "found OpenMP, compiling with flags: " ${OpenMP_CXX_FLAGS} )
+    endif()
 endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
@@ -190,24 +178,67 @@ endif()
 
 # common dependencies
 
-# in tree packages
+if(APPLE)
+    set(CMAKE_FIND_FRAMEWORK LAST)
+endif()
+
 message(STATUS "Using in-tree libdxfrw")
 add_subdirectory(extlib/libdxfrw)
 
-# packages managed through vcpkg
-find_package(mimalloc 1.6 CONFIG REQUIRED)
-if(NOT APPLE)
-    find_package(unofficial-angle CONFIG REQUIRED)
-endif()
-if(APPLE OR WIN32)
-    find_package(unofficial-cairo CONFIG REQUIRED)
-    find_package(freetype CONFIG REQUIRED)
-    find_package(libpng CONFIG REQUIRED)
-    find_package(unofficial-pixman CONFIG REQUIRED)
-    find_package(ZLIB REQUIRED)
-endif()
+message(STATUS "Using in-tree mimalloc")
+set(MI_OVERRIDE OFF CACHE BOOL "")
+set(MI_BUILD_SHARED OFF CACHE BOOL "")
+set(MI_BUILD_OBJECT OFF CACHE BOOL "")
+set(MI_BUILD_TESTS OFF CACHE BOOL "")
+add_subdirectory(extlib/mimalloc EXCLUDE_FROM_ALL)
+set(MIMALLOC_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/extlib/mimalloc/include)
 
-if(NOT WIN32 AND NOT APPLE)
+if(WIN32 OR APPLE)
+    # On Win32 and macOS we use vendored packages, since there is little to no benefit
+    # to trying to find system versions. In particular, trying to link to libraries from
+    # Homebrew or macOS system libraries into the .app file is highly likely to result
+    # in incompatibilities after upgrades.
+
+    include(FindVendoredPackage)
+    include(AddVendoredSubdirectory)
+
+    set(FORCE_VENDORED_ZLIB     ON)
+    set(FORCE_VENDORED_PNG      ON)
+    set(FORCE_VENDORED_Freetype ON)
+
+    find_vendored_package(ZLIB zlib
+        ZLIB_LIBRARY            zlibstatic
+        ZLIB_INCLUDE_DIR        ${CMAKE_SOURCE_DIR}/extlib/zlib)
+    list(APPEND ZLIB_INCLUDE_DIR ${CMAKE_BINARY_DIR}/extlib/zlib)
+
+    find_vendored_package(PNG libpng
+        SKIP_INSTALL_ALL        ON
+        PNG_LIBRARY             png_static
+        PNG_PNG_INCLUDE_DIR     ${CMAKE_SOURCE_DIR}/extlib/libpng)
+    list(APPEND PNG_PNG_INCLUDE_DIR ${CMAKE_BINARY_DIR}/extlib/libpng)
+
+    find_vendored_package(Freetype freetype
+        WITH_ZLIB               OFF
+        WITH_BZip2              OFF
+        WITH_PNG                OFF
+        WITH_HarfBuzz           OFF
+        FREETYPE_LIBRARY        freetype
+        FREETYPE_INCLUDE_DIRS   ${CMAKE_SOURCE_DIR}/extlib/freetype/include)
+
+    message(STATUS "Using in-tree pixman")
+    add_vendored_subdirectory(extlib/pixman)
+    set(PIXMAN_FOUND            YES)
+    set(PIXMAN_LIBRARY          pixman)
+    set(PIXMAN_INCLUDE_DIRS     ${CMAKE_SOURCE_DIR}/extlib/pixman/pixman)
+    list(APPEND PIXMAN_INCLUDE_DIRS ${CMAKE_BINARY_DIR}/extlib/pixman/pixman)
+
+    message(STATUS "Using in-tree cairo")
+    add_vendored_subdirectory(extlib/cairo)
+    set(CAIRO_FOUND             YES)
+    set(CAIRO_LIBRARIES         cairo)
+    set(CAIRO_INCLUDE_DIRS      ${CMAKE_SOURCE_DIR}/extlib/cairo/src)
+    list(APPEND CAIRO_INCLUDE_DIRS ${CMAKE_BINARY_DIR}/extlib/cairo/src)
+else()
     # On Linux and BSDs we're a good citizen and link to system libraries.
     find_package(Backtrace)
     find_package(PkgConfig REQUIRED)
@@ -222,18 +253,17 @@ endif()
 if(ENABLE_GUI)
     if(WIN32)
         if(OPENGL STREQUAL "3")
-            # message(STATUS "Using in-tree ANGLE")
-            # set(ANGLE_STATIC            ON  CACHE INTERNAL "")
-            # set(ANGLE_ENABLE_D3D9       ON  CACHE INTERNAL "")
-            # set(ANGLE_ENABLE_D3D11      ON  CACHE INTERNAL "")
-            # set(ANGLE_ENABLE_OPENGL     ON  CACHE INTERNAL "")
-            # set(ANGLE_ENABLE_ESSL       ON  CACHE INTERNAL "")
-            # set(ANGLE_ENABLE_GLSL       ON  CACHE INTERNAL "")
-            # set(ANGLE_ENABLE_HLSL       ON  CACHE INTERNAL "")
-            # include(AddVendoredSubdirectory)
-            # add_vendored_subdirectory(extlib/angle)
-            # set(OPENGL_LIBRARIES        EGL GLESv2)
-            # set(OPENGL_INCLUDE_DIR      ${CMAKE_SOURCE_DIR}/extlib/angle/include)
+            message(STATUS "Using in-tree ANGLE")
+            set(ANGLE_STATIC            ON  CACHE INTERNAL "")
+            set(ANGLE_ENABLE_D3D9       ON  CACHE INTERNAL "")
+            set(ANGLE_ENABLE_D3D11      ON  CACHE INTERNAL "")
+            set(ANGLE_ENABLE_OPENGL     ON  CACHE INTERNAL "")
+            set(ANGLE_ENABLE_ESSL       ON  CACHE INTERNAL "")
+            set(ANGLE_ENABLE_GLSL       ON  CACHE INTERNAL "")
+            set(ANGLE_ENABLE_HLSL       ON  CACHE INTERNAL "")
+            add_vendored_subdirectory(extlib/angle)
+            set(OPENGL_LIBRARIES        EGL GLESv2)
+            set(OPENGL_INCLUDE_DIR      ${CMAKE_SOURCE_DIR}/extlib/angle/include)
         else()
             find_package(OpenGL REQUIRED)
         endif()
@@ -249,7 +279,6 @@ if(ENABLE_GUI)
     elseif(APPLE)
         find_package(OpenGL REQUIRED)
         find_library(APPKIT_LIBRARY AppKit REQUIRED)
-        set(util_LIBRARIES ${APPKIT_LIBRARY})
     else()
         find_package(OpenGL REQUIRED)
         find_package(SpaceWare)
@@ -359,21 +388,14 @@ endif()
 
 # application components
 
-add_subdirectory(src/libslvs)
-add_subdirectory(src)
 add_subdirectory(res)
-# add_subdirectory(exposed)
-
+add_subdirectory(src)
+add_subdirectory(exposed)
 if(ENABLE_TESTS)
-    if(NOT ENABLE_CLI)
-        message(FATAL_ERROR "Cannot run tests when ENABLE_CLI is off")
-    endif()
     add_subdirectory(test)
 endif()
-
-if (ENABLE_BENCH)
-    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-        message(FATAL_ERROR "When ENABLE_BENCH is enabled, CMAKE_BUILD_TYPE must be set to Release or RelWithDebInfo")
-    endif()
+if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
     add_subdirectory(bench)
+else()
+    message(STATUS "Benchmarking disabled in debug builds.")
 endif()

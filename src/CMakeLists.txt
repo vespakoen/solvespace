@@ -1,10 +1,4 @@
-include(GNUInstallDirs)
-
-# configuration
-
-include_directories(
-    ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_CURRENT_BINARY_DIR})
+# include(GNUInstallDirs)
 
 set(HAVE_SPACEWARE ${SPACEWARE_FOUND})
 
@@ -15,72 +9,6 @@ if(NOT WIN32 OR APPLE)
         set(HAVE_GTK_FILECHOOSERNATIVE 1)
     endif()
 endif()
-
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.h.in
-               ${CMAKE_CURRENT_BINARY_DIR}/config.h)
-
-# platform utilities
-
-if(APPLE)
-    set(util_LIBRARIES
-        ${APPKIT_LIBRARY})
-endif()
-
-# libslvs
-
-set(libslvs_SOURCES
-    util.cpp
-    entity.cpp
-    expr.cpp
-    constraint.cpp
-    constrainteq.cpp
-    system.cpp
-    platform/platform.cpp)
-
-set(libslvs_HEADERS
-    solvespace.h
-    platform/platform.h)
-
-add_library(slvs SHARED
-    ${libslvs_SOURCES}
-    ${libslvs_HEADERS}
-    ${util_SOURCES}
-    lib.cpp)
-
-target_compile_definitions(slvs
-    PRIVATE -DLIBRARY)
-
-target_include_directories(slvs
-    PUBLIC ${CMAKE_SOURCE_DIR}/include)
-
-target_link_libraries(slvs
-    ${util_LIBRARIES}
-    mimalloc-static)
-
-add_dependencies(slvs
-    mimalloc-static)
-
-set_target_properties(slvs PROPERTIES
-    PUBLIC_HEADER ${CMAKE_SOURCE_DIR}/include/slvs.h
-    VERSION ${solvespace_VERSION_MAJOR}.${solvespace_VERSION_MINOR}
-    SOVERSION 1)
-
-if(NOT WIN32)
-    install(TARGETS slvs
-        LIBRARY       DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        ARCHIVE       DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
-endif()
-
-# solvespace dependencies
-
-include_directories(
-    ${OPENGL_INCLUDE_DIR}
-    ${ZLIB_INCLUDE_DIR}
-    ${PNG_PNG_INCLUDE_DIR}
-    ${FREETYPE_INCLUDE_DIRS}
-    ${CAIRO_INCLUDE_DIRS}
-    ${MIMALLOC_INCLUDE_DIR})
 
 if(Backtrace_FOUND)
     include_directories(
@@ -106,7 +34,6 @@ endif()
 set(platform_SOURCES
     ${gl_SOURCES}
     platform/entrygui.cpp)
-
 if(WIN32)
     list(APPEND platform_SOURCES
         platform/guiwin.cpp)
@@ -140,7 +67,6 @@ set(every_platform_SOURCES
     platform/guimac.mm)
 
 # solvespace library
-
 set(solvespace_core_HEADERS
     dsc.h
     expr.h
@@ -212,17 +138,18 @@ add_library(solvespace-core STATIC
     ${solvespace_core_HEADERS}
     ${solvespace_core_SOURCES})
 
-add_dependencies(solvespace-core
+target_link_libraries(solvespace-core
+    ${util_LIBRARIES}
+    dxfrw
+    freetype
+    png_static
+    expat
+    ZLIB::ZLIB
     mimalloc-static)
 
-target_link_libraries(solvespace-core
-    ${OpenMP_CXX_LIBRARIES}
-    dxfrw
-    ${util_LIBRARIES}
-    ${ZLIB_LIBRARY}
-    ${PNG_LIBRARY}
-    ${FREETYPE_LIBRARY}
-    mimalloc-static)
+if (ENABLE_OPENMP)
+    target_link_libraries(solvespace-core ${OpenMP_CXX_LIB_NAMES})
+endif()
 
 if(Backtrace_FOUND)
     target_link_libraries(solvespace-core
@@ -233,7 +160,6 @@ target_compile_options(solvespace-core
     PRIVATE ${COVERAGE_FLAGS})
 
 # solvespace translations
-
 if(HAVE_GETTEXT)
     set(inputs
         ${solvespace_core_SOURCES}
@@ -316,57 +242,68 @@ if(HAVE_GETTEXT)
 endif()
 
 # solvespace graphical executable
+add_executable(solvespace-gui WIN32 MACOSX_BUNDLE
+    ${solvespace_core_gl_SOURCES}
+    ${platform_SOURCES}
+    $<TARGET_PROPERTY:resources,EXTRA_SOURCES>)
 
-if(ENABLE_GUI)
-    add_executable(solvespace WIN32 MACOSX_BUNDLE
-        ${solvespace_core_gl_SOURCES}
-        ${platform_SOURCES}
-        $<TARGET_PROPERTY:resources,EXTRA_SOURCES>)
+add_dependencies(solvespace-gui
+    resources)
 
-    add_dependencies(solvespace
-        resources)
+target_link_libraries(solvespace-gui
+    PRIVATE
+    solvespace-core
+    ${OPENGL_LIBRARIES}
+    ${platform_LIBRARIES}
+    ${util_LIBRARIES}
+    ${COVERAGE_LIBRARY}
+)
 
-    target_link_libraries(solvespace
-        solvespace-core
-        ${OPENGL_LIBRARIES}
-        ${platform_LIBRARIES}
-        ${COVERAGE_LIBRARY})
-
-    if(MSVC)
-        set_target_properties(solvespace PROPERTIES
-            LINK_FLAGS "/MANIFEST:NO /SAFESEH:NO /INCREMENTAL:NO /OPT:REF")
-    elseif(APPLE)
-        set_target_properties(solvespace PROPERTIES
-            OUTPUT_NAME SolveSpace)
-    endif()
+if(MSVC)
+    set_target_properties(solvespace-gui PROPERTIES
+        LINK_FLAGS "/MANIFEST:NO /SAFESEH:NO /INCREMENTAL:NO /OPT:REF")
+elseif(APPLE)
+    set_target_properties(solvespace-gui PROPERTIES
+        OUTPUT_NAME "SolveSpace"
+        PRODUCT_BUNDLE_IDENTIFIER "com.solvespace"
+        XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME "YES"
+        XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH "NO"
+        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+    )
 endif()
 
-# solvespace headless library
-
-set(headless_SOURCES
-    platform/guinone.cpp
-    render/rendercairo.cpp)
-
-add_library(solvespace-headless STATIC EXCLUDE_FROM_ALL
-    ${solvespace_core_gl_SOURCES}
-    ${headless_SOURCES})
-
-target_compile_definitions(solvespace-headless
-    PRIVATE -DHEADLESS)
-
-target_include_directories(solvespace-headless
-    INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
-
-target_link_libraries(solvespace-headless
-    solvespace-core
-    ${CAIRO_LIBRARIES})
-
-target_compile_options(solvespace-headless
-    PRIVATE ${COVERAGE_FLAGS})
+# linking angle for windows
+if(NOT APPLE AND OPENGL STREQUAL "3")
+    target_link_libraries(solvespace-gui PRIVATE
+        unofficial::angle::libEGL
+        unofficial::angle::libANGLE
+        unofficial::angle::libGLESv2
+        unofficial::angle::angle_common)
+endif()
 
 # solvespace command-line executable
-
 if(ENABLE_CLI)
+    set(headless_SOURCES
+        platform/guinone.cpp
+        render/rendercairo.cpp)
+
+    add_library(solvespace-headless STATIC EXCLUDE_FROM_ALL
+        ${solvespace_core_gl_SOURCES}
+        ${headless_SOURCES})
+
+    target_compile_definitions(solvespace-headless
+        PRIVATE -DHEADLESS)
+
+    target_include_directories(solvespace-headless
+        INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
+
+    target_link_libraries(solvespace-headless
+        solvespace-core
+        unofficial::cairo::cairo)
+
+    target_compile_options(solvespace-headless
+        PRIVATE ${COVERAGE_FLAGS})
+
     add_executable(solvespace-cli
         platform/entrycli.cpp
         $<TARGET_PROPERTY:resources,EXTRA_SOURCES>)
@@ -385,7 +322,6 @@ if(ENABLE_CLI)
 endif()
 
 # solvespace unix package
-
 if(NOT (WIN32 OR APPLE))
     if(ENABLE_GUI)
         install(TARGETS solvespace
@@ -398,19 +334,25 @@ if(NOT (WIN32 OR APPLE))
 endif()
 
 # solvespace macOS package
-
 if(APPLE)
-    set(bundle     SolveSpace)
-    set(bundle_bin ${EXECUTABLE_OUTPUT_PATH}/${bundle}.app/Contents/MacOS)
-    set(bundle_resources ${EXECUTABLE_OUTPUT_PATH}/${bundle}.app/Contents/Resources/lib)
-    execute_process(
-        COMMAND mkdir -p ${bundle_resources}
-        COMMAND cp -p /usr/local/opt/libomp/lib/libomp.dylib ${bundle_resources}/libomp.dylib
-    )
-    add_custom_command(TARGET solvespace POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E make_directory ${bundle_bin}
-        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:solvespace-cli> ${bundle_bin}
-        COMMAND install_name_tool -change /usr/local/opt/libomp/lib/libomp.dylib "@executable_path/../Resources/lib/libomp.dylib" ${bundle_bin}/${bundle}
-        COMMENT "Bundling executable solvespace-cli"
+    add_custom_command(TARGET solvespace-gui POST_BUILD
+        COMMAND cp -r ${CMAKE_BINARY_DIR}/Resources $<TARGET_BUNDLE_CONTENT_DIR:solvespace-gui>/Resources
+        COMMENT "Copying resources"
         VERBATIM)
+
+    if(ENABLE_CLI)
+        add_custom_command(TARGET solvespace-gui POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:solvespace-cli> $<TARGET_FILE_DIR:solvespace-gui>
+            COMMENT "Bundling executable solvespace-cli"
+            VERBATIM)
+    endif()
+    if(ENABLE_OPENMP)
+        set(bundle_resources $<TARGET_BUNDLE_CONTENT_DIR:solvespace-gui>/Libraries)
+        add_custom_command(TARGET solvespace-gui POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E make_directory ${bundle_resources}
+            COMMAND ${CMAKE_COMMAND} -E copy ${OpenMP_CXX_LIB_NAMES} ${bundle_resources}/libomp.dylib
+            COMMAND install_name_tool -change ${OpenMP_CXX_LIB_NAMES} "@executable_path/../Libraries/libomp.dylib" $<TARGET_FILE:solvespace-gui>
+            COMMENT "Linking libomp"
+            VERBATIM)
+    endif()
 endif()
