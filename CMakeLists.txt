@@ -115,9 +115,16 @@ if(ENABLE_LTO)
 endif()
 
 if(ENABLE_OPENMP)
-    find_package( OpenMP REQUIRED )
-    include(FindOpenMP)
-    if(OPENMP_FOUND)
+    if (APPLE)
+        set(OpenMP_CXX_FLAGS "-Xpreprocessor -fopenmp")
+        set(OpenMP_CXX_LIB_NAMES "omp")
+        set(OpenMP_omp_LIBRARY "/usr/local/opt/libomp/lib/libomp.dylib")
+        include_directories("/usr/local/opt/libomp/include")
+    else()
+        find_package( OpenMP REQUIRED )
+        include(FindOpenMP)
+    endif()
+    if(OpenMP_FOUND)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
         message(STATUS "found OpenMP, compiling with flags: " ${OpenMP_CXX_FLAGS} )
     endif()
@@ -183,22 +190,7 @@ message(STATUS "Using in-tree libdxfrw")
 add_subdirectory(extlib/libdxfrw)
 
 message(STATUS "Using in-tree eigen")
-<<<<<<< HEAD
-include_directories(extlib/eigen)
-=======
-INCLUDE_DIRECTORIES(extlib/eigen/Eigen)
-
-message(STATUS "Using in-tree flatbuffers")
-set(FLATBUFFERS_BUILD_FLATLIB ON CACHE BOOL "")
-set(FLATBUFFERS_BUILD_FLATC ON CACHE BOOL "")
-set(FLATBUFFERS_BUILD_FLATHASH OFF CACHE BOOL "")
-set(FLATBUFFERS_BUILD_TESTS OFF CACHE BOOL "")
-add_subdirectory(extlib/flatbuffers EXCLUDE_FROM_ALL)
-
-message(STATUS "Using in-tree q3d")
-add_subdirectory(extlib/q3d)
-set(Q3D_INCLUDE_DIR ${CMAKE_BINARY_DIR}/extlib/q3d)
->>>>>>> fix Eigen
+include_directories(extlib/libeigen/Eigen)
 
 message(STATUS "Using in-tree mimalloc")
 set(MI_OVERRIDE OFF CACHE BOOL "")
