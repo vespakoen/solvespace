@@ -336,13 +336,7 @@ if(ENABLE_GUI)
         ${platform_LIBRARIES}
         ${COVERAGE_LIBRARY})
 
-    if(MSVC)
-        set_target_properties(solvespace PROPERTIES
-            LINK_FLAGS "/MANIFEST:NO /SAFESEH:NO /INCREMENTAL:NO /OPT:REF")
-    elseif(APPLE)
-        set_target_properties(solvespace PROPERTIES
-            OUTPUT_NAME SolveSpace)
-    elseif(EMSCRIPTEN)
+    if(EMSCRIPTEN)
         set(SHELL ${CMAKE_CURRENT_SOURCE_DIR}/platform/html/emshell.html)
         set(LINK_FLAGS
             --bind --shell-file ${SHELL}
@@ -381,6 +375,12 @@ if(ENABLE_GUI)
                     ${EXECUTABLE_OUTPUT_PATH}/solvespaceui.js
             COMMENT "Copying UI script"
             VERBATIM)
+    elseif(MSVC)
+        set_target_properties(solvespace PROPERTIES
+            LINK_FLAGS "/MANIFEST:NO /SAFESEH:NO /INCREMENTAL:NO /OPT:REF")
+    elseif(APPLE)
+        set_target_properties(solvespace PROPERTIES
+            OUTPUT_NAME SolveSpace)
     endif()
 endif()
 

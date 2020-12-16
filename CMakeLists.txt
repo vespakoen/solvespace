@@ -27,7 +27,7 @@ set(CMAKE_USER_MAKE_RULES_OVERRIDE
 set(CMAKE_USER_MAKE_RULES_OVERRIDE_CXX
    "${CMAKE_SOURCE_DIR}/cmake/cxx_flag_overrides.cmake")
 
-if(APPLE OR CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
+if(APPLE OR CMAKE_SYSTEM_NAME STREQUAL "FreeBSD" AND NOT EMSCRIPTEN)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
 endif()
 
@@ -180,7 +180,9 @@ if(APPLE)
 endif()
 
 if(EMSCRIPTEN)
+    set_property(GLOBAL PROPERTY TARGET_SUPPORTS_SHARED_LIBS FALSE)
     set(M_LIBRARY "" CACHE STRING "libm (not necessary)" FORCE)
+    set(MI_SECURE 0 CACHE BOOL "")
 endif()
 
 message(STATUS "Using in-tree libdxfrw")

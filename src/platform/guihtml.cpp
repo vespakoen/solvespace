@@ -50,7 +50,6 @@ static val Wrap(std::string str) {
     EM_ASM($Wrap$ret = UTF8ToString($0), str.c_str());
     return val::global("window")["$Wrap$ret"];
 }
-
 static std::string Unwrap(val emStr) {
     // FIXME(emscripten): a nicer way to do this?
     val emArray = val::global("window").call<val>("intArrayFromString", emStr, true) ;
@@ -69,7 +68,7 @@ static void CallStdFunction(void *data) {
 }
 
 static val Wrap(std::function<void()> *func) {
-    EM_ASM($Wrap$ret = Module.dynCall_vi.bind(null, $0, $1), CallStdFunction, func);
+    EM_ASM($Wrap$ret = Module.dynCall_vij.bind(null, $0, $1), CallStdFunction, func);
     return val::global("window")["$Wrap$ret"];
 }
 
