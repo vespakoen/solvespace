@@ -103,7 +103,7 @@ void GraphicsWindow::MouseMoved(double x, double y, bool leftDown,
         shiftDown = !shiftDown;
     }
 
-    if(SS.showToolbar) {
+    if(SS.showToolbar && !rightDown) {
         if(ToolbarMouseMoved((int)x, (int)y)) {
             hover.Clear();
             return;
@@ -494,7 +494,8 @@ void GraphicsWindow::ReplacePending(hRequest before, hRequest after) {
 
 void GraphicsWindow::MouseMiddleOrRightDown(double x, double y) {
     if(window->IsEditorVisible()) return;
-
+    // When right-clicking, hide any toolbar tooltips
+    ToolbarMouseMoved((int)-1, (int)-1);
     orig.offset = offset;
     orig.projUp = projUp;
     orig.projRight = projRight;
