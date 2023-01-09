@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 
-"""This module will test the functions of Python-Solvespace."""
+"""This module will test the functions of Solvespace."""
 
 __author__ = "Yuan Chang"
 __copyright__ = "Copyright (C) 2016-2019"
 __license__ = "GPLv3+"
 __email__ = "pyslvs@gmail.com"
 
-from unittest import TestCase
+from unittest import TestCase, main
 from math import radians
-from python_solvespace import ResultFlag, SolverSystem, make_quaternion
+from solvespace import ResultFlag, SolverSystem, make_quaternion
 
 
 class CoreTest(TestCase):
@@ -158,7 +158,7 @@ class CoreTest(TestCase):
         in order to satisfy the constraints.
 
         Copyright 2008-2013 Jonathan Westhues.
-        Copyright 2016-2017 Yuan Chang [pyslvs@gmail.com] Python-Solvespace bundled.
+        Copyright 2016-2017 Yuan Chang [pyslvs@gmail.com] Solvespace bundled.
 
         An example of a constraint in 2d. In our first group, we create a workplane
         along the reference frame's xy plane. In a second group, we create some
@@ -248,3 +248,6 @@ class CoreTest(TestCase):
         x, = sys.params(d307.params)
         self.assertAlmostEqual(17, x, 4)
         self.assertEqual(6, sys.dof())
+
+if __name__ == '__main__':
+    main()

@@ -24,6 +24,10 @@ endif()
 
 # OPENMP
 if(ENABLE_OPENMP)
+    if(APPLE)
+        list(APPEND CMAKE_PREFIX_PATH "/usr/local/opt/libomp")
+        list(APPEND CMAKE_PREFIX_PATH "/opt/homebrew/opt/libomp")
+    endif()
     find_package(OpenMP REQUIRED)
     if(OPENMP_FOUND)
         add_library(slvs_openmp INTERFACE)

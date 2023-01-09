@@ -6,6 +6,8 @@ cmake_minimum_required(VERSION 3.9...3.19)
 
 option(ENABLE_LIB
     "Whether the c library is enabled" OFF)
+option(ENABLE_PY_LIB
+    "Whether the python library is enabled" OFF)
 option(ENABLE_GUI
     "Whether the graphical interface is enabled" ON)
 option(ENABLE_CLI
@@ -264,8 +266,8 @@ if(MSVC)
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /LARGEADDRESSAWARE")
 endif()
 
-if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILE_ID MATCHES "AppleClang")
-    set(WARNING_FLAGS   "-Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -Wunused-command-line-argument")
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "AppleClang")
+    set(WARNING_FLAGS   "-Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers")
     if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "AppleClang")
         set(WARNING_FLAGS "${WARNING_FLAGS} -Wfloat-conversion")
     endif()
@@ -298,6 +300,10 @@ endif()
 
 if(ENABLE_LIB)
     include(src/libslvs.cmake)
+endif()
+
+if(ENABLE_PY_LIB)
+    include(cython/pylib.cmake)
 endif()
 
 if(ENABLE_GUI OR ENABLE_CLI)

@@ -335,7 +335,7 @@ cdef class Entity:
     def __repr__(self) -> str:
         cdef int h = <int>self.h
         cdef int g = <int>self.g
-        cdef str t = _NAME_OF_ENTITIES[<int>self.t]
+        cdef str t = _NAME_OF_ENTITIES[<int>self.t-1]
         return (
             f"{type(self).__name__}"
             f"(handle={h}, group={g}, type=<{t}>, is_3d={self.is_3d()}, params={self.params})"
@@ -344,7 +344,7 @@ cdef class Entity:
 
 cdef class SolverSystem:
 
-    """A solver system of Python-Solvespace.
+    """A solver system of Solvespace.
 
     The operation of entities and constraints are using the methods of this class.
     """

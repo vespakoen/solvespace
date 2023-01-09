@@ -20,3 +20,5 @@ out/
 .vs/
 CMakeSettings.json
 .idea/
+dist/
+.eggs/

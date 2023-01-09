@@ -12,6 +12,11 @@
 #include <assert.h>
 #include <cstring>
 #include "mimalloc.h"
+#if defined(WIN32)
+#    include <windows.h>
+#    include <malloc.h>
+#endif
+
 
 namespace SolveSpace {
 namespace Platform {

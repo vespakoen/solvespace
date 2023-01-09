@@ -11,7 +11,7 @@ Python library from the solver of SolveSpace, an open source CAD software.
 The example extracted from unit test:
 
 ```python
-from python_solvespace import SolverSystem, ResultFlag
+from solvespace import SolverSystem, ResultFlag
 
 sys = SolverSystem()
 wp = sys.create_2d_base()  # Workplane (Entity)
@@ -51,7 +51,7 @@ The entity and parameter handles should have the same lifetime to the solver.
 # Install
 
 ```bash
-pip install python-solvespace
+pip install solvespace
 ```
 
 # Build and Test (Repository)
@@ -79,5 +79,5 @@ python -m unittest
 Uninstall the module:
 
 ```bash
-pip uninstall python-solvespace
+pip uninstall solvespace
 ```

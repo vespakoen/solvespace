@@ -33,8 +33,20 @@ documentation = "https://github.com/solvespace/solvespace"
 repository = "https://github.com/solvespace/solvespace"
 
 [build-system]
-requires = ["wheel", "setuptools"]
-build-backend = "setuptools.build_meta"
+requires = ["scikit-build-core"]
+build-backend = "scikit_build_core.build"
+
+[tool.scikit-build]
+cmake.verbose = true
+logging.level = "DEBUG"
+wheel.packages = ["cython/solvespace"]
+
+[tool.scikit-build.cmake.define]
+ENABLE_GUI = "OFF"
+ENABLE_CLI = "OFF"
+ENABLE_TESTS = "OFF"
+ENABLE_OPENMP = "ON"
+ENABLE_PY_LIB = "ON"
 
 [tool.cibuildwheel]
 build = ["cp37*", "cp38*", "cp39*", "cp310*", "cp311*"]
