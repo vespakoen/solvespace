@@ -13,7 +13,7 @@
 #include <string.h>
 #include <stdint.h>
 
-#include <slvs.h>
+#include <solvespace/slvs.h>
 
 static Slvs_System sys;
 

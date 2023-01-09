@@ -1,5 +1,34 @@
-# cmake configuration
 cmake_minimum_required(VERSION 3.9...3.19)
+
+#=========#
+# OPTIONS #
+#=========#
+
+option(ENABLE_LIB
+    "Whether the c library is enabled" OFF)
+option(ENABLE_GUI
+    "Whether the graphical interface is enabled" ON)
+option(ENABLE_CLI
+    "Whether the command line interface is enabled" ON)
+option(ENABLE_TESTS
+    "Whether the test suite will be built and run" ON)
+option(ENABLE_COVERAGE
+    "Whether code coverage information will be collected" OFF)
+option(ENABLE_SANITIZERS
+    "Whether to enable Clang's AddressSanitizer and UndefinedBehaviorSanitizer" OFF)
+option(ENABLE_OPENMP
+    "Whether geometric operations will be parallelized using OpenMP" OFF)
+option(ENABLE_LTO
+    "Whether interprocedural (global) optimizations are enabled" OFF)
+option(ENABLE_BENCH
+    "Whether benchmarks are enabled" OFF)
+option(FORCE_VENDORED_Eigen3
+    "Whether we should use our bundled Eigen even in the presence of a system copy" OFF)
+set(OPENGL 3 CACHE STRING "OpenGL version to use (one of: 1 3)")
+
+#======#
+# MISC #
+#======#
 
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR)
     message(FATAL_ERROR
@@ -8,17 +37,17 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR)
             "    mkdir build && cd build && cmake ..")
 endif()
 
-list(APPEND CMAKE_MODULE_PATH
-    "${CMAKE_SOURCE_DIR}/cmake/")
-
-set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_STANDARD_REQUIRED YES)
+set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
+set(LIBRARY_OUTPUT_PATH    ${CMAKE_BINARY_DIR}/bin)
+if("${CMAKE_GENERATOR}" STREQUAL "Xcode")
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${CMAKE_BINARY_DIR}/bin>)
+endif()
 
 # for /MT on MSVC
 set(CMAKE_USER_MAKE_RULES_OVERRIDE
-   "${CMAKE_SOURCE_DIR}/cmake/c_flag_overrides.cmake")
+    "${CMAKE_SOURCE_DIR}/cmake/c_flag_overrides.cmake")
 set(CMAKE_USER_MAKE_RULES_OVERRIDE_CXX
-   "${CMAKE_SOURCE_DIR}/cmake/cxx_flag_overrides.cmake")
+    "${CMAKE_SOURCE_DIR}/cmake/cxx_flag_overrides.cmake")
 
 if(CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
@@ -29,7 +58,8 @@ if (APPLE)
     set(CMAKE_OSX_DEPLOYMENT_TARGET "10.12" CACHE STRING "macOS minimum supported version")
 endif()
 
-# project
+list(APPEND CMAKE_MODULE_PATH
+    "${CMAKE_SOURCE_DIR}/cmake/")
 
 # NOTE TO PACKAGERS: The embedded git commit hash is critical for rapid bug triage when the builds
 # can come from a variety of sources. If you are mirroring the sources or otherwise build when
@@ -39,35 +69,13 @@ include(GetGitCommitHash)
 # set(GIT_COMMIT_HASH 0000000000000000000000000000000000000000)
 
 string(SUBSTRING "${GIT_COMMIT_HASH}" 0 8 solvespace_GIT_HASH)
-project(solvespace
+
+project(SolveSpace
     VERSION 3.1
     LANGUAGES C CXX ASM)
 
-set(ENABLE_GUI        ON CACHE BOOL
-    "Whether the graphical interface is enabled")
-set(ENABLE_CLI        ON CACHE BOOL
-    "Whether the command line interface is enabled")
-set(ENABLE_TESTS      ON  CACHE BOOL
-    "Whether the test suite will be built and run")
-set(ENABLE_COVERAGE   OFF CACHE BOOL
-    "Whether code coverage information will be collected")
-set(ENABLE_SANITIZERS OFF CACHE BOOL
-    "Whether to enable Clang's AddressSanitizer and UndefinedBehaviorSanitizer")
-set(ENABLE_OPENMP     OFF CACHE BOOL
-    "Whether geometric operations will be parallelized using OpenMP")
-set(ENABLE_LTO        OFF CACHE BOOL
-    "Whether interprocedural (global) optimizations are enabled")
-option(FORCE_VENDORED_Eigen3
-    "Whether we should use our bundled Eigen even in the presence of a system copy"
-    OFF)
-
-set(OPENGL 3 CACHE STRING "OpenGL version to use (one of: 1 3)")
-
-set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
-set(LIBRARY_OUTPUT_PATH    ${CMAKE_BINARY_DIR}/bin)
-if("${CMAKE_GENERATOR}" STREQUAL "Xcode")
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${CMAKE_BINARY_DIR}/bin>)
-endif()
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED YES)
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 5.0)
@@ -109,25 +117,6 @@ if(CMAKE_SYSTEM_PROCESSOR STREQUAL "i686" OR CMAKE_SYSTEM_PROCESSOR STREQUAL "X8
 
     set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} ${FLOAT_FLAGS}")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${FLOAT_FLAGS}")
-endif()
-
-if(ENABLE_LTO)
-    include(CheckIPOSupported)
-    check_ipo_supported()
-    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
-endif()
-
-if(ENABLE_OPENMP)
-    find_package( OpenMP REQUIRED )
-    if(OPENMP_FOUND)
-        add_library(slvs_openmp INTERFACE)
-        target_compile_options(slvs_openmp INTERFACE ${OpenMP_CXX_FLAGS})
-        target_link_libraries(slvs_openmp INTERFACE
-            ${OpenMP_CXX_LIBRARIES})
-        target_include_directories(slvs_openmp INTERFACE SYSTEM
-            ${OpenMP_CXX_INCLUDE_DIRS})
-        message(STATUS "found OpenMP, compiling with flags: " ${OpenMP_CXX_FLAGS} )
-    endif()
 endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
@@ -180,8 +169,6 @@ if(ENABLE_SANITIZERS)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${SANITIZE_FLAGS}")
 endif()
 
-# common dependencies
-
 if(APPLE)
     set(CMAKE_FIND_FRAMEWORK LAST)
 endif()
@@ -190,139 +177,31 @@ if(EMSCRIPTEN)
     set(M_LIBRARY "" CACHE STRING "libm (not necessary)" FORCE)
 endif()
 
-message(STATUS "Using in-tree libdxfrw")
-add_subdirectory(extlib/libdxfrw)
+#==============#
+# DEPENDENCIES #
+#==============#
 
-message(STATUS "Using in-tree mimalloc")
-set(MI_OVERRIDE OFF CACHE BOOL "")
-set(MI_BUILD_SHARED OFF CACHE BOOL "")
-set(MI_BUILD_OBJECT OFF CACHE BOOL "")
-set(MI_BUILD_TESTS OFF CACHE BOOL "")
-add_subdirectory(extlib/mimalloc EXCLUDE_FROM_ALL)
-set(MIMALLOC_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/extlib/mimalloc/include)
+include(src/extlib.cmake)
 
-if(NOT FORCE_VENDORED_Eigen3)
-    find_package(Eigen3 CONFIG)
-endif()
-if(FORCE_VENDORED_Eigen3 OR NOT EIGEN3_INCLUDE_DIRS)
-    message(STATUS "Using in-tree Eigen")
-    set(EIGEN3_FOUND             YES)
-    set(EIGEN3_INCLUDE_DIRS      ${CMAKE_SOURCE_DIR}/extlib/eigen)
-else()
-    message(STATUS "Using system Eigen: ${EIGEN3_INCLUDE_DIRS}")
-endif()
-if(NOT EXISTS "${EIGEN3_INCLUDE_DIRS}")
-    message(FATAL_ERROR "Eigen 3 not found on system or in-tree")
-endif()
+#========#
+# CONFIG #
+#========#
 
+set(HAVE_SPACEWARE ${SPACEWARE_FOUND})
 
-if(WIN32 OR APPLE OR EMSCRIPTEN)
-    # On Win32 and macOS we use vendored packages, since there is little to no benefit
-    # to trying to find system versions. In particular, trying to link to libraries from
-    # Homebrew or macOS system libraries into the .app file is highly likely to result
-    # in incompatibilities after upgrades.
-
-    include(FindVendoredPackage)
-    include(AddVendoredSubdirectory)
-
-    set(FORCE_VENDORED_ZLIB     ON)
-    set(FORCE_VENDORED_PNG      ON)
-    set(FORCE_VENDORED_Freetype ON)
-
-    find_vendored_package(ZLIB zlib
-        ZLIB_LIBRARY            zlibstatic
-        ZLIB_INCLUDE_DIR        ${CMAKE_SOURCE_DIR}/extlib/zlib)
-    list(APPEND ZLIB_INCLUDE_DIR ${CMAKE_BINARY_DIR}/extlib/zlib)
-
-    find_vendored_package(PNG libpng
-        SKIP_INSTALL_ALL        ON
-        PNG_LIBRARY             png_static
-        PNG_ARM_NEON            "off"
-        PNG_SHARED              OFF
-        PNG_STATIC              ON
-        PNG_EXECUTABLES         OFF
-        PNG_TESTS               OFF
-        PNG_FRAMEWORK           OFF
-        PNG_PNG_INCLUDE_DIR     ${CMAKE_SOURCE_DIR}/extlib/libpng)
-    list(APPEND PNG_PNG_INCLUDE_DIR ${CMAKE_BINARY_DIR}/extlib/libpng)
-
-    find_vendored_package(Freetype freetype
-        WITH_ZLIB               OFF
-        WITH_BZip2              OFF
-        WITH_PNG                OFF
-        WITH_HarfBuzz           OFF
-        FREETYPE_LIBRARY        freetype
-        FREETYPE_INCLUDE_DIRS   ${CMAKE_SOURCE_DIR}/extlib/freetype/include)
-
-    message(STATUS "Using in-tree pixman")
-    set(PIXMAN_FOUND            YES)
-    set(PIXMAN_LIBRARY          pixman)
-    set(PIXMAN_BUILD_TESTS      OFF CACHE BOOL "")
-    set(PIXMAN_BUILD_DEMOS      OFF CACHE BOOL "")
-
-    set(PIXMAN_INCLUDE_DIRS     ${CMAKE_SOURCE_DIR}/extlib/pixman/pixman)
-    list(APPEND PIXMAN_INCLUDE_DIRS ${CMAKE_BINARY_DIR}/extlib/pixman/pixman)
-    add_vendored_subdirectory(extlib/pixman)
-
-    message(STATUS "Using in-tree cairo")
-    add_vendored_subdirectory(extlib/cairo)
-    set(CAIRO_FOUND             YES)
-    set(CAIRO_LIBRARIES         cairo)
-    set(CAIRO_INCLUDE_DIRS      ${CMAKE_SOURCE_DIR}/extlib/cairo/src)
-    list(APPEND CAIRO_INCLUDE_DIRS ${CMAKE_BINARY_DIR}/extlib/cairo/src)
-else()
-    # On Linux and BSDs we're a good citizen and link to system libraries.
-    find_package(Backtrace)
-    find_package(PkgConfig REQUIRED)
-    find_package(ZLIB REQUIRED)
-    find_package(PNG REQUIRED)
-    find_package(Freetype REQUIRED)
-    find_package(Cairo REQUIRED)
-endif()
-
-# GUI dependencies
-
-if(ENABLE_GUI)
-    if(WIN32)
-        if(OPENGL STREQUAL "3")
-            message(STATUS "Using in-tree ANGLE")
-            set(ANGLE_STATIC            ON  CACHE INTERNAL "")
-            set(ANGLE_ENABLE_D3D9       ON  CACHE INTERNAL "")
-            set(ANGLE_ENABLE_D3D11      ON  CACHE INTERNAL "")
-            set(ANGLE_ENABLE_OPENGL     ON  CACHE INTERNAL "")
-            set(ANGLE_ENABLE_ESSL       ON  CACHE INTERNAL "")
-            set(ANGLE_ENABLE_GLSL       ON  CACHE INTERNAL "")
-            set(ANGLE_ENABLE_HLSL       ON  CACHE INTERNAL "")
-            add_vendored_subdirectory(extlib/angle)
-            set(OPENGL_LIBRARIES        EGL GLESv2)
-            set(OPENGL_INCLUDE_DIR      ${CMAKE_SOURCE_DIR}/extlib/angle/include)
-        else()
-            find_package(OpenGL REQUIRED)
-        endif()
-
-        if(MSVC AND ${CMAKE_SIZEOF_VOID_P} EQUAL 4)
-            message(STATUS "Using prebuilt SpaceWare")
-            set(SPACEWARE_FOUND TRUE)
-            set(SPACEWARE_INCLUDE_DIR
-                "${CMAKE_SOURCE_DIR}/extlib/si")
-            set(SPACEWARE_LIBRARIES
-                "${CMAKE_SOURCE_DIR}/extlib/si/siapp.lib")
-        endif()
-    elseif(APPLE)
-        find_package(OpenGL REQUIRED)
-        find_library(APPKIT_LIBRARY AppKit REQUIRED)
-    elseif(EMSCRIPTEN)
-        # Everything is built in
+if(NOT WIN32 OR APPLE)
+    if(GTKMM_gtkmm-3.0_VERSION VERSION_LESS "3.24.0")
+        set(HAVE_GTK_FILECHOOSERNATIVE 0)
     else()
-        find_package(OpenGL REQUIRED)
-        find_package(SpaceWare)
-        pkg_check_modules(FONTCONFIG REQUIRED fontconfig)
-        pkg_check_modules(JSONC REQUIRED json-c)
-        pkg_check_modules(GTKMM REQUIRED gtkmm-3.0>=3.18 pangomm-1.4 x11)
+        set(HAVE_GTK_FILECHOOSERNATIVE 1)
     endif()
 endif()
 
-# code coverage
+configure_file(src/config.h.in src/config.h)
+
+#==========#
+# COVERAGE #
+#==========#
 
 if(ENABLE_COVERAGE)
     if(CMAKE_CXX_COMPILER_ID STREQUAL GNU)
@@ -344,20 +223,7 @@ if(ENABLE_COVERAGE)
     endif()
 endif()
 
-# translations
-
-find_program(XGETTEXT xgettext)
-find_program(MSGINIT  msginit)
-find_program(MSGMERGE msgmerge)
-if(XGETTEXT AND MSGINIT AND MSGMERGE)
-    set(HAVE_GETTEXT TRUE)
-else()
-    message(WARNING "Gettext not found, translations will not be updated")
-    set(HAVE_GETTEXT FALSE)
-endif()
-
 # solvespace-only compiler flags
-
 if(WIN32)
     add_definitions(
         -D_CRT_SECURE_NO_DEPRECATE
@@ -398,9 +264,9 @@ if(MSVC)
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /LARGEADDRESSAWARE")
 endif()
 
-if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    set(WARNING_FLAGS   "-Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers")
-    if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILE_ID MATCHES "AppleClang")
+    set(WARNING_FLAGS   "-Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -Wunused-command-line-argument")
+    if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "AppleClang")
         set(WARNING_FLAGS "${WARNING_FLAGS} -Wfloat-conversion")
     endif()
     # We rely on these -Werror flags.
@@ -430,16 +296,36 @@ if(ENABLE_COVERAGE)
     set(COVERAGE_LIBRARY --coverage)
 endif()
 
-# application components
+if(ENABLE_LIB)
+    include(src/libslvs.cmake)
+endif()
 
-add_subdirectory(res)
-add_subdirectory(src)
-add_subdirectory(exposed)
+if(ENABLE_GUI OR ENABLE_CLI)
+    include(src/core.cmake)
+    add_subdirectory(res)
+endif()
+
+if(ENABLE_GUI)
+    include(src/gui.cmake)
+endif()
+
+if(ENABLE_CLI)
+    include(src/cli.cmake)
+endif()
+
 if(ENABLE_TESTS)
     add_subdirectory(test)
 endif()
-if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
-    add_subdirectory(bench)
-else()
-    message(STATUS "Benchmarking disabled in debug builds.")
+
+if(ENABLE_BENCH)
+    if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+        add_subdirectory(bench)
+    else()
+        message(STATUS "Benchmarking disabled in debug builds.")
+  endif()
+endif()
+
+if(APPLE)
+  set(CPACK_DMG_VOLUME_NAME "SolveSpace")
+  include(CPack)
 endif()

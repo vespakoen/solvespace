@@ -1,13 +1,22 @@
-include_directories(
-    ${CMAKE_SOURCE_DIR}/include)
+cmake_minimum_required(VERSION 3.15...3.25)
 
-add_executable(CDemo
-    CDemo.c)
+project(CDemo LANGUAGES C)
 
-target_link_libraries(CDemo
-    slvs)
+find_package(SolveSpace REQUIRED)
 
-if(EMSCRIPTEN)
-    set_target_properties(CDemo PROPERTIES
-        LINK_FLAGS "-s TOTAL_MEMORY=134217728")
+add_executable(
+  ${PROJECT_NAME}
+  ${PROJECT_SOURCE_DIR}/CDemo.c
+)
+
+target_link_libraries(
+  ${PROJECT_NAME}
+  SolveSpace::slvs
+)
+
+if(WIN32)
+  add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:${PROJECT_NAME}> $<TARGET_FILE_DIR:${PROJECT_NAME}>
+    COMMAND_EXPAND_LISTS
+  )
 endif()
