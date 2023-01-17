@@ -18,8 +18,8 @@ from platform import system
 
 m_path = 'solvespace'
 include_path = join(m_path, 'include')
-src_path = join(m_path, 'src')
-platform_path = join(src_path, 'platform')
+src_path = join(m_path, 'src', 'core')
+# platform_path = join(src_path, 'platform')
 extlib_path = join(m_path, 'extlib')
 mimalloc_path = join(extlib_path, 'mimalloc')
 mimalloc_include_path = join(mimalloc_path, 'include')
@@ -35,7 +35,7 @@ macros = [
     ('_CRT_SECURE_NO_WARNINGS', None),
 ]
 compile_args = [
-    '-O3',
+    '-O2',
     '-Wno-cpp',
     '-g',
     '-Wno-write-strings',
@@ -55,15 +55,23 @@ link_args = ['-static-libgcc', '-static-libstdc++',
              '-lpsapi',
              '-Wl,-Bdynamic']
 sources = [
-    join(m_path, 'slvs.pyx'),
-    join(src_path, 'util.cpp'),
-    join(src_path, 'entity.cpp'),
+    join(src_path, 'minimalplatform.cpp'),
+    # join(src_path, 'util.cpp'),
+    join(src_path, 'point2d.cpp'),
+    join(src_path, 'quaternion.cpp'),
+    join(src_path, 'vector4.cpp'),
+    join(src_path, 'vector.cpp'),
     join(src_path, 'expr.cpp'),
+    join(src_path, 'entity.cpp'),
     join(src_path, 'constraint.cpp'),
-    join(src_path, 'constrainteq.cpp'),
-    join(src_path, 'system.cpp'),
+    join(src_path, 'sketch.cpp'),
     join(src_path, 'lib.cpp'),
-    join(platform_path, 'platform.cpp'),
+    join(m_path, 'slvs.pyx'),
+
+    # join(src_path, 'constrainteq.cpp'),
+    # join(src_path, 'system.cpp'),
+    # join(src_path, 'lib.cpp'),
+    # join(platform_path, 'platform.cpp'),
 ]
 mimalloc_sources = [
     # MiMalloc
@@ -83,7 +91,8 @@ mimalloc_sources = [
     join(mimalloc_src_path, 'init.c'),
 ]
 if {'sdist', 'bdist'} & set(sys.argv):
-    sources.append(join(platform_path, 'platform.cpp'))
+    # sources.append(join(platform_path, 'platform.cpp'))
+    print("ok")
 elif system() == 'Windows':
     # Disable format warning
     compile_args.append('-Wno-format')
@@ -104,7 +113,7 @@ def copy_source(dry_run):
                        dry_run=dry_run)
     dir_util.mkpath(src_path)
     dir_util.mkpath(mimalloc_src_path)
-    for path in (join('..', 'src'), join('..', 'extlib', 'mimalloc', 'src')):
+    for path in (join('..', 'src', 'core'), join('..', 'extlib', 'mimalloc', 'src')):
         for root, _, files in walk(path):
             for f in files:
                 if not (f.endswith('.h') or f.endswith('.c')):
@@ -114,10 +123,10 @@ def copy_source(dry_run):
                 if not isdir(dirname(f_new)):
                     dir_util.mkpath(dirname(f_new))
                 file_util.copy_file(f, f_new, dry_run=dry_run)
-    for f in sources[1:] + mimalloc_sources:
+    for f in sources[:-1] + mimalloc_sources:
         file_util.copy_file(f.replace(m_path, '..'), f, dry_run=dry_run)
     # Create an empty header
-    open(join(platform_path, 'config.h'), 'a').close()
+    # open(join(platform_path, 'config.h'), 'a').close()
 
 
 class Build(build_ext):
