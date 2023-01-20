@@ -298,30 +298,32 @@ Expr *Expr::DeepCopy() const {
     return n;
 }
 
-Expr *Expr::DeepCopyWithParamsAsPointers(IdList<Param,hParam> *firstTry,
-    IdList<Param,hParam> *thenTry) const
-{
+Expr *Expr::DeepCopyWithParamsAsPointers(IdList<Param, hParam> *firstTry,
+                                         IdList<Param, hParam> *thenTry) const {
     Expr *n = AllocExpr();
     if(op == Op::PARAM) {
         // A param that is referenced by its hParam gets rewritten to go
         // straight in to the parameter table with a pointer, or simply
         // into a constant if it's already known.
         Param *p = firstTry->FindByIdNoOops(parh);
-        if(!p) p = thenTry->FindById(parh);
+        if(!p)
+            p = thenTry->FindById(parh);
         if(p->known) {
             n->op = Op::CONSTANT;
-            n->v = p->val;
+            n->v  = p->val;
         } else {
-            n->op = Op::PARAM_PTR;
+            n->op   = Op::PARAM_PTR;
             n->parp = p;
         }
         return n;
     }
 
-    *n = *this;
+    *n    = *this;
     int c = n->Children();
-    if(c > 0) n->a = a->DeepCopyWithParamsAsPointers(firstTry, thenTry);
-    if(c > 1) n->b = b->DeepCopyWithParamsAsPointers(firstTry, thenTry);
+    if(c > 0)
+        n->a = a->DeepCopyWithParamsAsPointers(firstTry, thenTry);
+    if(c > 1)
+        n->b = b->DeepCopyWithParamsAsPointers(firstTry, thenTry);
     return n;
 }
 
@@ -513,14 +515,14 @@ void Expr::Substitute(hParam oldh, hParam newh) {
 // return that parameter. If no param is referenced, then return NO_PARAMS.
 // If multiple params are referenced, then return MULTIPLE_PARAMS.
 //-----------------------------------------------------------------------------
-const hParam Expr::NO_PARAMS       = { 0 };
-const hParam Expr::MULTIPLE_PARAMS = { 1 };
+const hParam Expr::NO_PARAMS       = {0};
+const hParam Expr::MULTIPLE_PARAMS = {1};
 hParam Expr::ReferencedParams(ParamList *pl) const {
     if(op == Op::PARAM) {
         if(pl->FindByIdNoOops(parh)) {
-            return parh;
+                return parh;
         } else {
-            return NO_PARAMS;
+                return NO_PARAMS;
         }
     }
     ssassert(op != Op::PARAM_PTR, "Expected an expression that refer to params via handles");
@@ -535,15 +537,16 @@ hParam Expr::ReferencedParams(ParamList *pl) const {
         pa = a->ReferencedParams(pl);
         pb = b->ReferencedParams(pl);
         if(pa == NO_PARAMS) {
-            return pb;
+                return pb;
         } else if(pb == NO_PARAMS) {
-            return pa;
+                return pa;
         } else if(pa == pb) {
-            return pa; // either, doesn't matter
+                return pa; // either, doesn't matter
         } else {
-            return MULTIPLE_PARAMS;
+                return MULTIPLE_PARAMS;
         }
-    } else ssassert(false, "Unexpected children count");
+    } else
+        ssassert(false, "Unexpected children count");
 }
 
 
@@ -551,33 +554,33 @@ hParam Expr::ReferencedParams(ParamList *pl) const {
 // Routines to pretty-print an expression. Mostly for debugging.
 //-----------------------------------------------------------------------------
 
-// std::string Expr::Print() const {
-//     char c;
-//     switch(op) {
-//         case Op::PARAM:     return ssprintf("param(%08x)", parh.v);
-//         case Op::PARAM_PTR: return ssprintf("param(p%08x)", parp->h.v);
+std::string Expr::Print() const {
+    char c;
+    switch(op) {
+        case Op::PARAM:     return ssprintf("param(%x)", parh.v);
+        case Op::PARAM_PTR: return ssprintf("param(p%x)", parp->h.v);
 
-//         case Op::CONSTANT:  return ssprintf("%.3f", v);
-//         case Op::VARIABLE:  return "(var)";
+        case Op::CONSTANT:  return ssprintf("%.3f", v);
+        case Op::VARIABLE:  return "(var)";
 
-//         case Op::PLUS:      c = '+'; goto p;
-//         case Op::MINUS:     c = '-'; goto p;
-//         case Op::TIMES:     c = '*'; goto p;
-//         case Op::DIV:       c = '/'; goto p;
-// p:
-//             return "(" + a->Print() + " " + c + " " + b->Print() + ")";
-//             break;
+        case Op::PLUS:      c = '+'; goto p;
+        case Op::MINUS:     c = '-'; goto p;
+        case Op::TIMES:     c = '*'; goto p;
+        case Op::DIV:       c = '/'; goto p;
+p:
+            return "(" + a->Print() + " " + c + " " + b->Print() + ")";
+            break;
 
-//         case Op::NEGATE:    return "(- " + a->Print() + ")";
-//         case Op::SQRT:      return "(sqrt " + a->Print() + ")";
-//         case Op::SQUARE:    return "(square " + a->Print() + ")";
-//         case Op::SIN:       return "(sin " + a->Print() + ")";
-//         case Op::COS:       return "(cos " + a->Print() + ")";
-//         case Op::ASIN:      return "(asin " + a->Print() + ")";
-//         case Op::ACOS:      return "(acos " + a->Print() + ")";
-//     }
-//     ssassert(false, "Unexpected operation");
-// }
+        case Op::NEGATE:    return "(- " + a->Print() + ")";
+        case Op::SQRT:      return "(sqrt " + a->Print() + ")";
+        case Op::SQUARE:    return "(square " + a->Print() + ")";
+        case Op::SIN:       return "(sin " + a->Print() + ")";
+        case Op::COS:       return "(cos " + a->Print() + ")";
+        case Op::ASIN:      return "(asin " + a->Print() + ")";
+        case Op::ACOS:      return "(acos " + a->Print() + ")";
+    }
+    ssassert(false, "Unexpected operation");
+}
 
 
 //-----------------------------------------------------------------------------

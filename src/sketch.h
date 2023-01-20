@@ -8,7 +8,7 @@
 #ifndef SOLVESPACE_SKETCH_2_H
 #define SOLVESPACE_SKETCH_2_H
 
-#include "entity.h"
+#include "entitybase.h"
 
 class hGroup;
 class hRequest;

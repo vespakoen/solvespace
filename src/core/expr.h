@@ -1,12 +1,15 @@
 #ifndef SOLVESPACE_EXPR_H
 #define SOLVESPACE_EXPR_H
 
-#include <stdio.h>
+#include <iostream>
+#include <cstdio>
 #include <cmath>
 #include <string>
 #include "data.h"
 #include "vector.h"
 #include "quaternion.h"
+#include "constraintbase.h"
+#include "entitybase.h"
 #include "sketch.h"
 
 class Expr {
@@ -108,7 +111,7 @@ public:
 
     void ParamsToPointers();
 
-    // std::string Print() const;
+    std::string Print() const;
 
     // number of child nodes: 0 (e.g. constant), 1 (sqrt), or 2 (+)
     int Children() const;
@@ -164,4 +167,5 @@ public:
 
     Expr *Magnitude() const;
 };
+
 #endif

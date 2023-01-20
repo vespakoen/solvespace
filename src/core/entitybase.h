@@ -1,14 +1,15 @@
-#ifndef SOLVESPACE_ENTITY_H
-#define SOLVESPACE_ENTITY_H
+#ifndef SOLVESPACE_ENTITYBASE_H
+#define SOLVESPACE_ENTITYBASE_H
 
 #include <string>
+#include <array>
 #include "data.h"
 #include "expr.h"
 #include "quaternion.h"
 #include "sketch.h"
 #include "point2d.h"
 #include "vector.h"
-#include "constraint.h"
+#include "constraintbase.h"
 
 #define MAX_POINTS_IN_ENTITY (12)
 
@@ -19,6 +20,8 @@ public:
 
     static const hEntity FREE_IN_3D;
     static const hEntity NO_ENTITY;
+    static const EntityBase _FREE_IN_3D;
+    static const EntityBase _NO_ENTITY;
 
     enum class Type : uint32_t {
         POINT_IN_3D            = 2000,
@@ -63,13 +66,13 @@ public:
 
     // When it comes time to draw an entity, we look here to get the
     // defining variables.
-    hEntity point[MAX_POINTS_IN_ENTITY];
+    std::array<hEntity, 12> point;
     int extraPoints;
     hEntity normal;
     hEntity distance;
     // The only types that have their own params are points, normals,
     // and directions.
-    hParam param[8];
+    std::array<hParam, 8> param;
 
     // Transformed points/normals/distances have their numerical base
     Vector numPoint;
@@ -84,6 +87,66 @@ public:
     // For entities that are derived by a transformation, the number of
     // times to apply the transformation.
     int timesApplied;
+
+    inline std::vector<hParam> GetParams() {
+        std::vector<hParam> params;
+        for (hParam &p : param) {
+            if (p.v != 0) {
+                params.push_back(p);
+            }
+        }
+        return params;
+    }
+
+    inline bool IsFreeIn3D() {
+        return h == _FREE_IN_3D.h;
+    }
+
+    inline bool Is3D() {
+        return workplane == FREE_IN_3D;
+    }
+
+    inline bool IsNone() {
+        return h.v == 0;
+    }
+
+    inline bool IsPoint2D() {
+        return type == Type::POINT_IN_2D;
+    }
+
+    inline bool IsPoint3D() {
+        return type == Type::POINT_IN_3D;
+    }
+
+    inline bool IsNormal2D() {
+        return type == Type::NORMAL_IN_2D;
+    }
+
+    inline bool IsNormal3D() {
+        return type == Type::NORMAL_IN_3D;
+    }
+
+    inline bool IsLine() {
+        return type == Type::LINE_SEGMENT;
+    }
+
+    inline bool IsLine2D() {
+        return type == Type::LINE_SEGMENT && !Is3D();
+    }
+
+    inline bool IsLine3D() {
+        return type == Type::LINE_SEGMENT && Is3D();
+    }
+
+    inline bool IsCubic() {
+        return type == Type::CUBIC;
+    }
+
+    inline bool IsArc() {
+        return type == Type::ARC_OF_CIRCLE;
+    }
+
+    std::string ToString() const;
 
     Quaternion QuaternionFromParams(hParam w, hParam vx, hParam vy, hParam vz) const;
 
@@ -165,8 +228,7 @@ public:
     void AddEq(IdList<Equation, hEquation> *l, Expr *expr, int index) const;
     void GenerateEquations(IdList<Equation, hEquation> *l) const;
 
-    void Clear() {
-    }
+    void Clear() {}
 };
 
 #endif

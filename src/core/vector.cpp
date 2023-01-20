@@ -1,13 +1,5 @@
 #include "vector.h"
 
-// Vector Vector::From(hParam x, hParam y, hParam z) {
-//     Vector v;
-//     v.x = SK.GetParam(x)->val;
-//     v.y = SK.GetParam(y)->val;
-//     v.z = SK.GetParam(z)->val;
-//     return v;
-// }
-
 bool Vector::EqualsExactly(Vector v) const {
     return EXACT(x == v.x && y == v.y && z == v.z);
 }

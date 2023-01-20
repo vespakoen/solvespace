@@ -2,8 +2,13 @@
 #define SOLVESPACE_VECTOR_H
 
 #include <cmath>
+#include <algorithm>
 #include "core.h"
 #include "point2d.h"
+
+using std::min;
+using std::max;
+using std::fabs;
 
 class Vector {
 public:
@@ -58,6 +63,74 @@ public:
     Point2d ProjectXy() const;
     // Vector4 Project4d() const;
 };
+
+inline double Vector::Element(int i) const {
+    switch(i) {
+    case 0: return x;
+    case 1: return y;
+    case 2: return z;
+    default: ssassert(false, "Unexpected vector element index");
+    }
+}
+
+inline bool Vector::Equals(Vector v, double tol) const {
+    // Quick axis-aligned tests before going further
+    const Vector dv = this->Minus(v);
+    if(fabs(dv.x) > tol)
+        return false;
+    if(fabs(dv.y) > tol)
+        return false;
+    if(fabs(dv.z) > tol)
+        return false;
+
+    return dv.MagSquared() < tol * tol;
+}
+
+inline Vector Vector::From(double x, double y, double z) {
+    return {x, y, z};
+}
+
+inline Vector Vector::Plus(Vector b) const {
+    return {x + b.x, y + b.y, z + b.z};
+}
+
+inline Vector Vector::Minus(Vector b) const {
+    return {x - b.x, y - b.y, z - b.z};
+}
+
+inline Vector Vector::Negated() const {
+    return {-x, -y, -z};
+}
+
+inline Vector Vector::Cross(Vector b) const {
+    return {-(z * b.y) + (y * b.z), (z * b.x) - (x * b.z), -(y * b.x) + (x * b.y)};
+}
+
+inline double Vector::Dot(Vector b) const {
+    return (x * b.x + y * b.y + z * b.z);
+}
+
+inline double Vector::MagSquared() const {
+    return x * x + y * y + z * z;
+}
+
+inline double Vector::Magnitude() const {
+    return sqrt(x * x + y * y + z * z);
+}
+
+inline Vector Vector::ScaledBy(const double v) const {
+    return {x * v, y * v, z * v};
+}
+
+inline void Vector::MakeMaxMin(Vector *maxv, Vector *minv) const {
+    maxv->x = max(maxv->x, x);
+    maxv->y = max(maxv->y, y);
+    maxv->z = max(maxv->z, z);
+
+    minv->x = min(minv->x, x);
+    minv->y = min(minv->y, y);
+    minv->z = min(minv->z, z);
+}
 
 struct VectorHash {
     size_t operator()(const Vector &v) const;

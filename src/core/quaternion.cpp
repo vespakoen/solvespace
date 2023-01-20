@@ -101,3 +101,84 @@ double Quaternion::Magnitude() const {
 Quaternion Quaternion::WithMagnitude(double s) const {
     return ScaledBy(s / Magnitude());
 }
+
+Vector Quaternion::RotationU() const {
+    Vector v;
+    v.x = w * w + vx * vx - vy * vy - vz * vz;
+    v.y = 2 * w * vz + 2 * vx * vy;
+    v.z = 2 * vx * vz - 2 * w * vy;
+    return v;
+}
+
+Vector Quaternion::RotationV() const {
+    Vector v;
+    v.x = 2 * vx * vy - 2 * w * vz;
+    v.y = w * w - vx * vx + vy * vy - vz * vz;
+    v.z = 2 * w * vx + 2 * vy * vz;
+    return v;
+}
+
+Vector Quaternion::RotationN() const {
+    Vector v;
+    v.x = 2 * w * vy + 2 * vx * vz;
+    v.y = 2 * vy * vz - 2 * w * vx;
+    v.z = w * w - vx * vx - vy * vy + vz * vz;
+    return v;
+}
+
+Vector Quaternion::Rotate(Vector p) const {
+    // Express the point in the new basis
+    return (RotationU().ScaledBy(p.x))
+        .Plus(RotationV().ScaledBy(p.y))
+        .Plus(RotationN().ScaledBy(p.z));
+}
+
+Quaternion Quaternion::Inverse() const {
+    Quaternion r;
+    r.w  = w;
+    r.vx = -vx;
+    r.vy = -vy;
+    r.vz = -vz;
+    return r.WithMagnitude(1); // not that the normalize should be reqd
+}
+
+Quaternion Quaternion::ToThe(double p) const {
+    // Avoid division by zero, or arccos of something not in its domain
+    if(w >= (1 - 1e-6)) {
+        return From(1, 0, 0, 0);
+    } else if(w <= (-1 + 1e-6)) {
+        return From(-1, 0, 0, 0);
+    }
+
+    Quaternion r;
+    Vector axis  = Vector::From(vx, vy, vz);
+    double theta = acos(w); // okay, since magnitude is 1, so -1 <= w <= 1
+    theta *= p;
+    r.w  = cos(theta);
+    axis = axis.WithMagnitude(sin(theta));
+    r.vx = axis.x;
+    r.vy = axis.y;
+    r.vz = axis.z;
+    return r;
+}
+
+Quaternion Quaternion::Times(Quaternion b) const {
+    double sa = w, sb = b.w;
+    Vector va = {vx, vy, vz};
+    Vector vb = {b.vx, b.vy, b.vz};
+
+    Quaternion r;
+    r.w       = sa * sb - va.Dot(vb);
+    Vector vr = vb.ScaledBy(sa).Plus(va.ScaledBy(sb).Plus(va.Cross(vb)));
+    r.vx      = vr.x;
+    r.vy      = vr.y;
+    r.vz      = vr.z;
+    return r;
+}
+
+Quaternion Quaternion::Mirror() const {
+    Vector u = RotationU(), v = RotationV();
+    u = u.ScaledBy(-1);
+    v = v.ScaledBy(-1);
+    return Quaternion::From(u, v);
+}

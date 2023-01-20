@@ -139,9 +139,16 @@ public:
     }
 };
 
-// class EntityBase;
-// typedef IdList<EntityBase, hEntity> EntityList;
+typedef IdList<EntityBase, hEntity> EntityList;
 typedef IdList<Param, hParam> ParamList;
+
+enum class SolveResult : uint32_t {
+    OKAY                     = 0,
+    DIDNT_CONVERGE           = 10,
+    REDUNDANT_OKAY           = 11,
+    REDUNDANT_DIDNT_CONVERGE = 12,
+    TOO_MANY_UNKNOWNS        = 20
+};
 
 // hGroup
 inline hEntity hGroup::entity(int i) const {

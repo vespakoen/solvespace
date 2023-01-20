@@ -1,3 +1,3 @@
-#include "sketch.h"
+#include "lib.h"
 
-Sketch SK = {};
+Sketch<ConstraintBase, EntityBase> SK = {};

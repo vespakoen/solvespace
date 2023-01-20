@@ -3,10 +3,8 @@
 
 #include <cmath>
 // #include "data.h"
-#include "vector.h"
 // #include "sketch.h"
-
-class Sketch;
+#include "vector.h"
 
 class Quaternion {
 public:

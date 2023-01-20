@@ -108,7 +108,7 @@ public:
 
     void Add(T *t) {
         // Look to see if we already have something with the same handle value.
-        ssassert(FindByIdNoOops(t->h) == nullptr, "Handle isn't unique");
+        ssassert(FindByIdNoOops(t->h) == nullptr, ("Handle isn't unique: " + std::to_string(t->h.v)).c_str());
 
         // Find out where the added element should be.
         auto pos = std::lower_bound(elemidx.begin(), elemidx.end(), *t, Compare(this));
@@ -139,7 +139,7 @@ public:
 
     T *FindById(H h) {
         T *t = FindByIdNoOops(h);
-        ssassert(t != nullptr, "Cannot find handle");
+        ssassert(t != nullptr, ("Cannot find handle: " + std::to_string(h.v)).c_str());
         return t;
     }
 

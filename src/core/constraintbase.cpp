@@ -1,4 +1,4 @@
-#include "constraint.h"
+#include "constraintbase.h"
 
 const hConstraint ConstraintBase::NO_CONSTRAINT = {0};
 

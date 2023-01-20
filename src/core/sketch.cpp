@@ -1,15 +1,5 @@
 #include "sketch.h"
 
-void Sketch::Clear() {
-    // group.Clear();
-    // groupOrder.Clear();
-    constraint.Clear();
-    // request.Clear();
-    // style.Clear();
-    entity.Clear();
-    param.Clear();
-}
-
 // BBox Sketch::CalculateEntityBBox(bool includingInvisible) {
 //     BBox box   = {};
 //     bool first = true;

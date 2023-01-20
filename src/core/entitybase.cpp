@@ -1,7 +1,50 @@
-#include "entity.h"
+#include "entitybase.h"
 
 const hEntity EntityBase::FREE_IN_3D = {0};
 const hEntity EntityBase::NO_ENTITY  = {0};
+const EntityBase EntityBase::_FREE_IN_3D = {};
+const EntityBase EntityBase::_NO_ENTITY = {};
+
+std::string EntityBase::ToString() const {
+    switch(type) {
+    case Type::POINT_IN_3D: {
+        Vector p = PointGetNum();
+        return "Point3D(x=" + std::to_string(p.x) + ", y=" + std::to_string(p.y) + ", z=" + std::to_string(p.z) + ")";
+    }
+    case Type::POINT_IN_2D: {
+        Vector p = PointGetNum();
+        return "Point2D(x=" + std::to_string(p.x) + ", y=" + std::to_string(p.y) + ")";
+    }
+    case Type::POINT_N_TRANS: return "PointNTrans";
+    case Type::POINT_N_ROT_TRANS: return "PointNRotTrans";
+    case Type::POINT_N_COPY: return "PointNCopy";
+    case Type::POINT_N_ROT_AA: return "PointNRotAA";
+    case Type::POINT_N_ROT_AXIS_TRANS: return "PointNRotAxisTrans";
+    case Type::NORMAL_IN_3D: return "Normal3D";
+    case Type::NORMAL_IN_2D: return "Normal2D";
+    case Type::NORMAL_N_COPY: return "NormalNCopy";
+    case Type::NORMAL_N_ROT: return "NormalNRot";
+    case Type::NORMAL_N_ROT_AA: return "NormalNRotAA";
+    case Type::DISTANCE: return "Distance";
+    case Type::DISTANCE_N_COPY: return "DistanceNCopy";
+    case Type::FACE_NORMAL_PT: return "FaceNormalPt";
+    case Type::FACE_XPROD: return "FaceXprod";
+    case Type::FACE_N_ROT_TRANS: return "FaceNRotTrans";
+    case Type::FACE_N_TRANS: return "FaceNTrans";
+    case Type::FACE_N_ROT_AA: return "FaceNRotAA";
+    case Type::FACE_ROT_NORMAL_PT: return "FaceRotNormalPT";
+    case Type::FACE_N_ROT_AXIS_TRANS: return "FaceNRotAxisTrans";
+    case Type::WORKPLANE: return "Workplane";
+    case Type::LINE_SEGMENT: return "Line";
+    case Type::CUBIC: return "Cubic";
+    case Type::CUBIC_PERIODIC: return "CubicPeriod";
+    case Type::CIRCLE: return "Circle";
+    case Type::ARC_OF_CIRCLE: return "Arc";
+    case Type::TTF_TEXT: return "TTFText";
+    case Type::IMAGE: return "Image";
+    default: return "Unknown";
+    }
+}
 
 bool EntityBase::HasVector() const {
     switch(type) {
@@ -55,7 +98,7 @@ ExprVector EntityBase::VectorGetExprs() const {
     return VectorGetExprsInWorkplane(EntityBase::FREE_IN_3D);
 }
 
-Vector VectorFromParams(hParam x, hParam y, hParam z) {
+Vector EntityBase::VectorFromParams(hParam x, hParam y, hParam z) const {
     Vector v;
     v.x = SK.GetParam(x)->val;
     v.y = SK.GetParam(y)->val;

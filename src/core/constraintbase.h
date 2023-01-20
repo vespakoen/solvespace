@@ -1,11 +1,11 @@
-#ifndef SOLVESPACE_CONSTRAINT_H
-#define SOLVESPACE_CONSTRAINT_H
+#ifndef SOLVESPACE_CONSTRAINTBASE_H
+#define SOLVESPACE_CONSTRAINTBASE_H
 
 #include <string>
 #include "data.h"
 #include "expr.h"
 #include "sketch.h"
-#include "entity.h"
+#include "entitybase.h"
 
 class ConstraintBase {
 public:

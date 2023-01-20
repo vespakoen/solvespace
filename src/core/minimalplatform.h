@@ -7,8 +7,8 @@
 #ifndef SOLVESPACE_MINIMAL_PLATFORM_H
 #define SOLVESPACE_MINIMAL_PLATFORM_H
 
-#include <stdarg.h>
-#include <stdio.h>
+#include <cstdarg>
+#include <cstdio>
 #include <cassert>
 #include <string>
 #include "mimalloc.h"
