@@ -1,5 +1,26 @@
-# cmake configuration
 cmake_minimum_required(VERSION 3.9...3.19)
+
+set(ENABLE_GUI        ON CACHE BOOL
+    "Whether the graphical interface is enabled")
+set(ENABLE_CLI        ON CACHE BOOL
+    "Whether the command line interface is enabled")
+set(ENABLE_PYTHON_LIB  OFF CACHE BOOL
+    "Whether to build the python library")
+set(ENABLE_TESTS      ON  CACHE BOOL
+    "Whether the test suite will be built and run")
+set(ENABLE_COVERAGE   OFF CACHE BOOL
+    "Whether code coverage information will be collected")
+set(ENABLE_SANITIZERS OFF CACHE BOOL
+    "Whether to enable Clang's AddressSanitizer and UndefinedBehaviorSanitizer")
+set(ENABLE_OPENMP     OFF CACHE BOOL
+    "Whether geometric operations will be parallelized using OpenMP")
+set(ENABLE_LTO        OFF CACHE BOOL
+    "Whether interprocedural (global) optimizations are enabled")
+option(FORCE_VENDORED_Eigen3
+    "Whether we should use our bundled Eigen even in the presence of a system copy"
+    OFF)
+
+set(OPENGL 3 CACHE STRING "OpenGL version to use (one of: 1 3)")
 
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR)
     message(FATAL_ERROR
@@ -11,8 +32,10 @@ endif()
 list(APPEND CMAKE_MODULE_PATH
     "${CMAKE_SOURCE_DIR}/cmake/")
 
-set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_STANDARD_REQUIRED YES)
+if (NOT ENABLE_PYTHON_LIB)
+    set(CMAKE_CXX_STANDARD 11)
+    set(CMAKE_CXX_STANDARD_REQUIRED YES)
+endif()
 
 # for /MT on MSVC
 set(CMAKE_USER_MAKE_RULES_OVERRIDE
@@ -42,28 +65,6 @@ string(SUBSTRING "${GIT_COMMIT_HASH}" 0 8 solvespace_GIT_HASH)
 project(solvespace
     VERSION 3.1
     LANGUAGES C CXX ASM)
-
-set(ENABLE_GUI        ON CACHE BOOL
-    "Whether the graphical interface is enabled")
-set(ENABLE_CLI        ON CACHE BOOL
-    "Whether the command line interface is enabled")
-set(ENABLE_PYTHON_LIB  OFF CACHE BOOL
-    "Whether to build the python library")
-set(ENABLE_TESTS      ON  CACHE BOOL
-    "Whether the test suite will be built and run")
-set(ENABLE_COVERAGE   OFF CACHE BOOL
-    "Whether code coverage information will be collected")
-set(ENABLE_SANITIZERS OFF CACHE BOOL
-    "Whether to enable Clang's AddressSanitizer and UndefinedBehaviorSanitizer")
-set(ENABLE_OPENMP     OFF CACHE BOOL
-    "Whether geometric operations will be parallelized using OpenMP")
-set(ENABLE_LTO        OFF CACHE BOOL
-    "Whether interprocedural (global) optimizations are enabled")
-option(FORCE_VENDORED_Eigen3
-    "Whether we should use our bundled Eigen even in the presence of a system copy"
-    OFF)
-
-set(OPENGL 3 CACHE STRING "OpenGL version to use (one of: 1 3)")
 
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH    ${CMAKE_BINARY_DIR}/bin)
