@@ -368,20 +368,29 @@ endif()
 # solvespace-only compiler flags
 
 if(WIN32)
-    add_definitions(
-        -D_CRT_SECURE_NO_DEPRECATE
-        -D_CRT_SECURE_NO_WARNINGS
-        -D_SCL_SECURE_NO_WARNINGS
-        -DWINVER=0x0501
-        -D_WIN32_WINNT=0x0501
-        -D_WIN32_IE=_WIN32_WINNT
-        -DISOLATION_AWARE_ENABLED
-        -DWIN32
-        -DWIN32_LEAN_AND_MEAN
-        -DUNICODE
-        -D_UNICODE
-        -DNOMINMAX
-        -D_USE_MATH_DEFINES)
+    if(ENABLE_PYTHON_LIB)
+        add_definitions(
+            -D_CRT_SECURE_NO_WARNINGS
+            -DEXPORT_DLL
+            -DISOLATION_AWARE_ENABLED
+            -D_USE_MATH_DEFINES
+            -DM_PI)
+    else()
+        add_definitions(
+            -D_CRT_SECURE_NO_DEPRECATE
+            -D_CRT_SECURE_NO_WARNINGS
+            -D_SCL_SECURE_NO_WARNINGS
+            -DWINVER=0x0501
+            -D_WIN32_WINNT=0x0501
+            -D_WIN32_IE=_WIN32_WINNT
+            -DISOLATION_AWARE_ENABLED
+            -DWIN32
+            -DWIN32_LEAN_AND_MEAN
+            -DUNICODE
+            -D_UNICODE
+            -DNOMINMAX
+            -D_USE_MATH_DEFINES)
+    endif()
 endif()
 
 if(MSVC)
