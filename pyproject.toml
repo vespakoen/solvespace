@@ -26,6 +26,20 @@ classifiers = [
 wheel.expand-macos-universal-tags = true
 cmake.verbose = true
 cmake.build-type = "Debug"
+sdist.include = [
+  ".git/HEAD",
+  ".git/refs"
+]
+wheel.packages = ["python/solvespace"]
+
+[tool.scikit-build.cmake.define]
+ENABLE_GUI = "OFF"
+ENABLE_CLI = "OFF"
+ENABLE_TESTS = "OFF"
+ENABLE_COVERAGE = "OFF"
+ENABLE_OPENMP = "OFF"
+FORCE_VENDORED_Eigen3 = "ON"
+ENABLE_PYTHON_LIB = "ON"
 
 [tool.cibuildwheel]
 build-verbosity = 1

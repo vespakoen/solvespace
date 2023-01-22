@@ -2,7 +2,7 @@ name: Python
 
 on:
   push:
-    branches: [ master, python ]
+    branches: [ master, python, experiments ]
     tags: [ v* ]
 
 jobs:
@@ -16,7 +16,6 @@ jobs:
         with:
           python-version: "3.10"
       - name: Pack
-        working-directory: cython
         shell: bash
         run: |
           if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
@@ -32,7 +31,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: sdist
-          path: cython/dist/*.tar.gz
+          path: dist/*.tar.gz
   python-wheel:
     name: ${{ matrix.os_short }} python ${{ matrix.architecture }} cp${{ matrix.python_version }}
     runs-on: ${{ matrix.os }}
@@ -112,7 +111,7 @@ jobs:
             # version="$(git describe --tags).dev${GITHUB_RUN_NUMBER}"
             version="3.1.0.dev${GITHUB_RUN_NUMBER}"
           fi
-          cd cython && sed -i.bak "s/^version = .*/version = \"${version}\"/g" pyproject.toml && rm pyproject.toml.bak
+          sed -i.bak "s/^version = .*/version = \"${version}\"/g" pyproject.toml && rm pyproject.toml.bak
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
         if: matrix.architecture == 'aarch64'
@@ -120,8 +119,6 @@ jobs:
           platforms: arm64
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.11.2
-        with:
-          package-dir: cython
         env:
           CIBW_BUILD: "cp${{ matrix.python_version }}-*"
           CIBW_PLATFORM: "${{ matrix.os_short }}"
