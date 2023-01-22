@@ -111,7 +111,7 @@ public:
 
     void ParamsToPointers();
 
-    std::string Print() const;
+    // std::string Print() const;
 
     // number of child nodes: 0 (e.g. constant), 1 (sqrt), or 2 (+)
     int Children() const;

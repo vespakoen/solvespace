@@ -554,33 +554,33 @@ hParam Expr::ReferencedParams(ParamList *pl) const {
 // Routines to pretty-print an expression. Mostly for debugging.
 //-----------------------------------------------------------------------------
 
-std::string Expr::Print() const {
-    char c;
-    switch(op) {
-        case Op::PARAM:     return ssprintf("param(%x)", parh.v);
-        case Op::PARAM_PTR: return ssprintf("param(p%x)", parp->h.v);
+// std::string Expr::Print() const {
+//     char c;
+//     switch(op) {
+//         case Op::PARAM:     return ssprintf("param(%x)", parh.v);
+//         case Op::PARAM_PTR: return ssprintf("param(p%x)", parp->h.v);
 
-        case Op::CONSTANT:  return ssprintf("%.3f", v);
-        case Op::VARIABLE:  return "(var)";
+//         case Op::CONSTANT:  return ssprintf("%.3f", v);
+//         case Op::VARIABLE:  return "(var)";
 
-        case Op::PLUS:      c = '+'; goto p;
-        case Op::MINUS:     c = '-'; goto p;
-        case Op::TIMES:     c = '*'; goto p;
-        case Op::DIV:       c = '/'; goto p;
-p:
-            return "(" + a->Print() + " " + c + " " + b->Print() + ")";
-            break;
+//         case Op::PLUS:      c = '+'; goto p;
+//         case Op::MINUS:     c = '-'; goto p;
+//         case Op::TIMES:     c = '*'; goto p;
+//         case Op::DIV:       c = '/'; goto p;
+// p:
+//             return "(" + a->Print() + " " + c + " " + b->Print() + ")";
+//             break;
 
-        case Op::NEGATE:    return "(- " + a->Print() + ")";
-        case Op::SQRT:      return "(sqrt " + a->Print() + ")";
-        case Op::SQUARE:    return "(square " + a->Print() + ")";
-        case Op::SIN:       return "(sin " + a->Print() + ")";
-        case Op::COS:       return "(cos " + a->Print() + ")";
-        case Op::ASIN:      return "(asin " + a->Print() + ")";
-        case Op::ACOS:      return "(acos " + a->Print() + ")";
-    }
-    ssassert(false, "Unexpected operation");
-}
+//         case Op::NEGATE:    return "(- " + a->Print() + ")";
+//         case Op::SQRT:      return "(sqrt " + a->Print() + ")";
+//         case Op::SQUARE:    return "(square " + a->Print() + ")";
+//         case Op::SIN:       return "(sin " + a->Print() + ")";
+//         case Op::COS:       return "(cos " + a->Print() + ")";
+//         case Op::ASIN:      return "(asin " + a->Print() + ")";
+//         case Op::ACOS:      return "(acos " + a->Print() + ")";
+//     }
+//     ssassert(false, "Unexpected operation");
+// }
 
 
 //-----------------------------------------------------------------------------
