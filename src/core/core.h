@@ -1,6 +1,7 @@
 #ifndef SOLVESPACE_CORE_H
 #define SOLVESPACE_CORE_H
 
+#include <algorithm>
 #include <string>
 #include <cmath>
 #include "minimalplatform.h"
