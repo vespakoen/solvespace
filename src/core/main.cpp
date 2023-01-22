@@ -216,7 +216,7 @@ PYBIND11_MODULE(slvs, m) {
         // .def("point_get_exprs_in_workplane", py::overload_cast<hEntity*, Expr**,
         // Expr**>(&EntityBase::PointGetExprsInWorkplane)) .def("point_get_exprs_in_workplane",
         // py::overload_cast<hEntity>(&EntityBase::PointGetExprsInWorkplane))
-        .def("point_forceto", &EntityBase::PointForceTo)
+        .def("point_force_to", &EntityBase::PointForceTo)
         .def("point_force_param_to", &EntityBase::PointForceParamTo)
         .def("point_get_quaternion", &EntityBase::PointGetQuaternion)
         .def("point_force_quaternion_to", &EntityBase::PointForceQuaternionTo)
@@ -398,6 +398,7 @@ PYBIND11_MODULE(slvs, m) {
         .def_readwrite("constraint", &Sketch<ConstraintBase, EntityBase>::constraint)
         .def("add_group", &Sketch<ConstraintBase, EntityBase>::AddGroup)
         .def("set_active_group", &Sketch<ConstraintBase, EntityBase>::SetActiveGroup)
+        .def("get_active_group", &Sketch<ConstraintBase, EntityBase>::GetActiveGroup)
         .def("add_param", &Sketch<ConstraintBase, EntityBase>::AddParam)
         .def("add_point_2d", &Sketch<ConstraintBase, EntityBase>::AddPoint2D)
         .def("add_point_3d", &Sketch<ConstraintBase, EntityBase>::AddPoint3D)

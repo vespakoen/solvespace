@@ -98,6 +98,16 @@ public:
         return params;
     }
 
+    inline std::vector<hEntity> GetPoints() {
+        std::vector<hEntity> points;
+        for (hEntity &p : point) {
+            if (p.v != 0) {
+                points.push_back(p);
+            }
+        }
+        return points;
+    }
+
     inline bool IsFreeIn3D() {
         return h == _FREE_IN_3D.h;
     }
@@ -229,6 +239,28 @@ public:
     void GenerateEquations(IdList<Equation, hEquation> *l) const;
 
     void Clear() {}
+
+    inline std::string ToString() {
+        std::string repr = "";
+        std::string paramsStr      = "";
+        for(hParam &p : GetParams()) {
+            paramsStr += std::to_string(p.v) + ",";
+        }
+        std::string pointsStr      = "";
+        for(hEntity &p : GetPoints()) {
+            pointsStr += std::to_string(p.v) + ",";
+        }
+        repr +=
+            "h:" + std::to_string(h.v) +
+            " group:" + std::to_string(group.v) +
+            " workplane:" + std::to_string(workplane.v) +
+            " point: [" + pointsStr + "]"
+            " normal:" + std::to_string(normal.v) +
+            " distance:" + std::to_string(distance.v) +
+            " type: " + std::to_string(static_cast<std::underlying_type<EntityBase::Type>::type>(type)) +
+            " param: [" + paramsStr + "]";
+        return repr;
+    }
 };
 
 #endif

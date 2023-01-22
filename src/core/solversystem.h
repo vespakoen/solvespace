@@ -1,6 +1,7 @@
 #ifndef SOLVESPACE_SOLVERSYSTEM_H
 #define SOLVESPACE_SOLVERSYSTEM_H
 
+#include <string>
 #include <cstdio>
 #include "data.h"
 #include "group.h"

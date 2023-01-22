@@ -174,7 +174,6 @@ void System::SolveBySubstitution() {
                 continue;
             }
 
-            std::cout << "Finding param a: " << a.v << ", b: " << b.v << "\n";
             Param *pa = param.FindById(a);
             Param *pb = param.FindById(b);
 
@@ -307,7 +306,6 @@ bool System::NewtonSolve(int tag) {
         // Take the Newton step;
         //      J(x_n) (x_{n+1} - x_n) = 0 - F(x_n)
         for(i = 0; i < mat.n; i++) {
-            std::cout << "Finding mat param: " << mat.param[0].v << "\n";
             Param *p = param.FindById(mat.param[i]);
             p->val -= mat.X[i];
             if(IsReasonable(p->val)) {
@@ -460,7 +458,6 @@ SolveResult System::Solve(Group *g, int *rank, int *dof, List<hConstraint> *bad,
         if(hp == Expr::MULTIPLE_PARAMS)
             continue;
 
-        std::cout << "Finding param p: " << hp.v << "\n";
         Param *p = param.FindById(hp);
         if(p->tag != 0)
             continue; // let rank test catch inconsistency

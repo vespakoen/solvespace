@@ -1,6 +1,7 @@
 #ifndef SOLVESPACE_DATA_H
 #define SOLVESPACE_DATA_H
 
+#include <string>
 #include <type_traits>
 #include <vector>
 #include "core.h"
@@ -136,6 +137,13 @@ public:
     static const hParam NO_PARAM;
 
     void Clear() {
+    }
+
+    inline std::string ToString() {
+        std::string repr = "";
+        repr += "h:" + std::to_string(h.v) +
+            " val:" + std::to_string(val);
+        return repr;
     }
 };
 
