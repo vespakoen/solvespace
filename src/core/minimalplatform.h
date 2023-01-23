@@ -13,7 +13,6 @@
 #include <string>
 #include "mimalloc.h"
 #if defined(WIN32)
-#    include <windows.h>
 #    include <malloc.h>
 #endif
 
